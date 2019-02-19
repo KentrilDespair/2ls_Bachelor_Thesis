@@ -300,6 +300,11 @@ public:
     const var_specst &var_specs,
     const namespacet &ns);
 
+  // TODO temp name and params for now
+  virtual void identify_invariant_imprecision(
+    const valuet &value,
+    const namespacet &ns) {}
+
 protected:
   unsigned domain_number; // serves as id for variables names
   replace_mapt &renaming_map;
