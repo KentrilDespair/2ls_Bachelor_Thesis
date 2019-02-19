@@ -201,6 +201,10 @@ void ssa_analyzert::operator()(
   solver_calls+=s_solver->get_number_of_solver_calls();
   solver_instances+=s_solver->get_number_of_solver_instances();
 
+  // TODO
+  // imprecise invariant identification method call for supported domains
+  domain->identify_invariant_imprecision(*result, SSA.ns);
+
   delete s_solver;
 }
 
