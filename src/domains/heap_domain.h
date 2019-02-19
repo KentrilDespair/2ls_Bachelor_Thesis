@@ -262,6 +262,11 @@ public:
     return templ.empty();
   }
 
+  // TODO inconclusive invariant detection
+  virtual void identify_invariant_imprecision(
+    const valuet &value,
+    const namespacet &ns) override;
+
 protected:
   templatet templ;
 

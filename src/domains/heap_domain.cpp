@@ -2005,3 +2005,90 @@ const exprt heap_domaint::get_points_to_dest(
   else
     return nil_exprt();
 }
+/*******************************************************************\
+
+Function: heap_domaint::identify_invariant_imprecision
+
+  Inputs: TODO
+
+ Outputs:
+
+ Purpose: Identifies imprecise parts of invariant.
+
+\*******************************************************************/
+
+void heap_domaint::identify_invariant_imprecision(
+  const domaint::valuet &value,
+  const namespacet &ns)
+{
+  debug() << "=====================\nINVARIANT IMPRECISION"
+    << "\n---------------------\n";
+
+  // get corresponding template row values
+  const heap_valuet &val=static_cast<const heap_valuet &>(value);
+  assert(val.size()==templ.size());
+
+  // loop through the templates and corresponding values
+  for (rowt row=0; row<templ.size(); row++)
+  {
+    debug() << "VAR:\n"
+      << id2string(to_symbol_expr(templ[row].expr).get_identifier())
+      << "\n" 
+      << from_expr(ns, "", templ[row].expr) << "\n";
+
+    // get val based on mem. kind?
+    /* DEPRECATED
+    debug() << "IS mem kind: ";
+    switch(templ[row].mem_kind)
+    {
+      case STACK:
+         debug() << "STACK\n";
+        // TODO convert to stack_row_valuet
+        // check set of objects it points to?
+        break;
+      case HEAP:
+        debug() << "HEAP\n";
+        // TODO convert to heap_row_valuet
+        // check paths?
+    }
+    */
+
+    // get the actual value for this template row
+    const exprt row_expr=val[row].get_row_expr(templ[row].expr, false);
+    debug() << "HEAP VAL: " << from_expr(ns, "", row_expr) << "\n";
+    
+    // is nondeterministic
+    // (val[row].nondet==true)
+    if (row_expr.is_true()) 
+    {    
+      debug() << "TRUE expr, Kind: " << templ[row].kind << "\n";
+
+      /* NOT NEEDED
+      if (templ[row].kind==LOOP) // is loop_back
+      {
+        debug() << "IS LOOP\n";
+          // << templ[row].member << "\n"; // TODO??
+      } */
+
+      // getting the variable SSA identifier
+      const irep_idt &identifier=
+        to_symbol_expr(templ[row].expr).get_identifier();
+      debug() << "IDENTIF: " << identifier << "\n";
+
+      // searching corresponding namespace
+      const symbolt *symbol;
+
+      if (ns.lookup(identifier, symbol))
+        continue;
+
+      // getting the pretty name
+      std::cout << "Found symbol: " << symbol->display_name() << "\n";
+
+      // getting source location
+      std::cout << "Line number in source: " <<
+        symbol->location.get_line() << "\n";
+    }
+  }
+  debug() << "---------------------\n";
+  //std::string expr_id=id2string(to_symbol_expr(expr).get_identifier());
+}
