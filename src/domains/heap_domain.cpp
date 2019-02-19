@@ -2028,13 +2028,13 @@ void heap_domaint::identify_invariant_imprecision(
   const heap_valuet &val=static_cast<const heap_valuet &>(value);
   assert(val.size()==templ.size());
 
+  debug() << "Variables:\n";
   // loop through the templates and corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
-    debug() << "VAR:\n"
-      << id2string(to_symbol_expr(templ[row].expr).get_identifier())
-      << "\n" 
-      << from_expr(ns, "", templ[row].expr) << "\n";
+    // debug() << from_expr(ns, "", templ[row].expr) << "\n";
+    //  << id2string(to_symbol_expr(templ[row].expr).get_identifier())
+    //  << "\n" 
 
     // get val based on mem. kind?
     /* DEPRECATED
@@ -2055,12 +2055,14 @@ void heap_domaint::identify_invariant_imprecision(
 
     // get the actual value for this template row
     const exprt row_expr=val[row].get_row_expr(templ[row].expr, false);
-    debug() << "HEAP VAL: " << from_expr(ns, "", row_expr) << "\n";
+    // debug() << "HEAP VAL: " << from_expr(ns, "", row_expr) << "\n";
     
     // is nondeterministic
     // (val[row].nondet==true)
     if (row_expr.is_true()) 
-    {    
+    { 
+      debug() << from_expr(ns, "", templ[row].expr) << "\n";
+      debug() << "HEAP VAL: " << from_expr(ns, "", row_expr) << "\n";
       debug() << "TRUE expr, Kind: " << templ[row].kind << "\n";
 
       /* NOT NEEDED
@@ -2071,6 +2073,7 @@ void heap_domaint::identify_invariant_imprecision(
       } */
 
       // getting the variable SSA identifier
+      // TODO assertion fail sometimes
       const irep_idt &identifier=
         to_symbol_expr(templ[row].expr).get_identifier();
       debug() << "IDENTIF: " << identifier << "\n";
