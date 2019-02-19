@@ -10,6 +10,10 @@ Author: Viktor Malik
 #include <algorithm>
 #include <ssa/address_canonizer.h>
 
+// TODO debug output
+#include <iostream>
+#define debug() (std::cerr)
+
 /*******************************************************************\
 
 Function: heap_domaint::initialize
