@@ -10,8 +10,8 @@ Author: Viktor Malik
 #include <algorithm>
 #include <ssa/address_canonizer.h>
 
-// TODO debug output
 #include <iostream>
+
 #define debug() (std::cerr)
 
 /*******************************************************************\
@@ -30,6 +30,7 @@ Function: heap_domaint::initialize
 void heap_domaint::initialize(domaint::valuet &value)
 {
   heap_valuet &val=static_cast<heap_valuet &>(value);
+  debug() << "\nInitializing abstract value: " << value.basic_value << "\n";
 
   for(const template_rowt &templ_row : templ)
   {
@@ -65,9 +66,11 @@ void heap_domaint::make_template(
   const domaint::var_specst &var_specs,
   const namespacet &ns)
 {
+  ODebug(); 
   unsigned long size=var_specs.size();
   templ.clear();
   templ.reserve(size);
+  debug() << "\nHEAP: Making template of size: " << size << "\n";
 
   for(const var_spect &v : var_specs)
   {
@@ -148,7 +151,10 @@ void heap_domaint::add_template_row(
   const var_spect &var_spec,
   const typet &pointed_type)
 {
+  ODebug(); 
   const vart &var=var_spec.var;
+
+  debug() << "\nHTEMPLATE ROW FOR VAR: " << id2string(to_symbol_expr(var).get_identifier()) << "\n";
 
   templ.push_back(template_rowt());
   template_rowt &templ_row=templ.back();
@@ -202,6 +208,7 @@ void heap_domaint::add_template_row_pair(
   const domaint::var_spect &var_spec2,
   const typet &pointed_type)
 {
+  ODebug(); 
   const exprt var_pair=and_exprt(var_spec1.var, var_spec2.var);
 
   templ.push_back(template_rowt());
@@ -2013,13 +2020,13 @@ Function: heap_domaint::identify_invariant_imprecision
 
  Outputs:
 
- Purpose: Identifies imprecise parts of invariant.
+ Purpose: TODO
 
 \*******************************************************************/
 
 void heap_domaint::identify_invariant_imprecision(
   const domaint::valuet &value,
-  const namespacet &ns)
+  std::vector<std::pair<unsigned, std::string>> &ssa_var_locs)
 {
   debug() << "=====================\nINVARIANT IMPRECISION"
     << "\n---------------------\n";
@@ -2027,71 +2034,79 @@ void heap_domaint::identify_invariant_imprecision(
   // get corresponding template row values
   const heap_valuet &val=static_cast<const heap_valuet &>(value);
   assert(val.size()==templ.size());
-
+ 
   debug() << "Variables:\n";
-  // loop through the templates and corresponding values
+  // loop through the templates with corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
     // debug() << from_expr(ns, "", templ[row].expr) << "\n";
     //  << id2string(to_symbol_expr(templ[row].expr).get_identifier())
-    //  << "\n" 
-
-    // get val based on mem. kind?
-    /* DEPRECATED
-    debug() << "IS mem kind: ";
-    switch(templ[row].mem_kind)
-    {
-      case STACK:
-         debug() << "STACK\n";
-        // TODO convert to stack_row_valuet
-        // check set of objects it points to?
-        break;
-      case HEAP:
-        debug() << "HEAP\n";
-        // TODO convert to heap_row_valuet
-        // check paths?
-    }
-    */
+    //  << "\n"
 
     // get the actual value for this template row
     const exprt row_expr=val[row].get_row_expr(templ[row].expr, false);
-    // debug() << "HEAP VAL: " << from_expr(ns, "", row_expr) << "\n";
     
-    // is nondeterministic
-    // (val[row].nondet==true)
+    // row value is nondeterministic
     if (row_expr.is_true()) 
-    { 
-      debug() << from_expr(ns, "", templ[row].expr) << "\n";
-      debug() << "HEAP VAL: " << from_expr(ns, "", row_expr) << "\n";
-      debug() << "TRUE expr, Kind: " << templ[row].kind << "\n";
+    {
+      debug() << from_expr(domaint::ns, "", templ[row].expr)
+        << "\tVAL: " << from_expr(domaint::ns, "", row_expr) << "\n";
 
-      /* NOT NEEDED
-      if (templ[row].kind==LOOP) // is loop_back
-      {
-        debug() << "IS LOOP\n";
-          // << templ[row].member << "\n"; // TODO??
-      } */
-
-      // getting the variable SSA identifier
-      // TODO assertion fail sometimes
+      // get the SSA variable identifier
       const irep_idt &identifier=
         to_symbol_expr(templ[row].expr).get_identifier();
       debug() << "IDENTIF: " << identifier << "\n";
 
-      // searching corresponding namespace
-      const symbolt *symbol;
+      std::string pretty;
+      get_symbol_pretty_name(templ[row].expr, pretty);
+      debug() << "Pretty: " << pretty << "\n";
 
-      if (ns.lookup(identifier, symbol))
+      // TODO can't be used for extra-var like loopback
+      // const symbolt symbol = domaint::ns.lookup(identifier);
+      // debug() << "Symbol: "  << symbol.display_name() << "\n";
+
+      // get location of SSA var
+      int ssa_var_loc=get_symbol_loc(templ[row].expr);
+
+      // is input variable
+      if (ssa_var_loc==-1)
+      {
+        debug() << "Input variable\n";
+        // TODO END
         continue;
+      }
 
-      // getting the pretty name
-      std::cout << "Found symbol: " << symbol->display_name() << "\n";
+      debug() << "At location in SSA: " << ssa_var_loc << "\n";
 
-      // getting source location
-      std::cout << "Line number in source: " <<
-        symbol->location.get_line() << "\n";
+      ssa_var_locs.push_back(
+        std::pair<unsigned, std::string> (
+          static_cast<unsigned>(ssa_var_loc), pretty)); 
     }
   }
   debug() << "---------------------\n";
-  //std::string expr_id=id2string(to_symbol_expr(expr).get_identifier());
+}
+
+/*******************************************************************\
+
+Function: heap_domaint::get_symbol_pretty_name(const exprt &expr)
+
+  Inputs: Symbol expression. TODO
+
+ Outputs: TODO
+
+ Purpose: Get pretty name of the symbol expression
+
+\*******************************************************************/
+
+void heap_domaint::get_symbol_pretty_name(
+  const exprt &expr, 
+  std::string &pretty)
+{
+  pretty=from_expr(domaint::ns, "", expr);
+
+  size_t idx=pretty.find('#');
+  if(idx==std::string::npos)
+    return;
+
+  pretty=pretty.substr(0, idx);
 }
