@@ -2,11 +2,11 @@
 
 CHANGED FILES
 =============
-ssa\_analyzer.h
-ssa\_analyzer.cpp
-domain.h
-heap\_domain.h
-heap\_domain.cpp
+* ssa\_analyzer.h
+* ssa\_analyzer.cpp
+* domain.h
+* heap\_domain.h
+* heap\_domain.cpp
 
 
 About
