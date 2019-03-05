@@ -42,7 +42,7 @@ int main()
   p = p->next;
 
   if (p)
-   p = p->next;
+   p = p->next;  // line 34
  }
  
  return 0;
