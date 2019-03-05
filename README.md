@@ -52,23 +52,7 @@ int main()
 OUTPUT EXAMPLE
 ==============
 ```
-... 16 =====================
- 15 INVARIANT IMPRECISION
- 14 ---------------------
- 13 Variables:
- 12 heap_domain.cpp:698:get_row_expr()
- 11 p#lb37
- 10 HEAP VAL: TRUE
-  9 IDENTIF: main::1::p#lb37
-  8 heap_domain.cpp:1806:get_symbol_pretty_name()
-  7 Pretty: p
-  6 heap_domain.cpp:638:get_symbol_loc()
-  5 At location in SSA: 37
-  4 ---------------------
-  3 MATCH: p#34
-  2 MATCH: p#36
-  1 
-249 -> Variable "p" in file main2.c line 34 function main
+...
 =====================
 INVARIANT IMPRECISION
 ---------------------
