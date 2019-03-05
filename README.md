@@ -57,13 +57,9 @@ OUTPUT EXAMPLE
 INVARIANT IMPRECISION
 ---------------------
 Variables:
-heap_domain.cpp:698:get_row_expr()
-p#lb37
-HEAP VAL: TRUE
+p#lb37 VAL: TRUE
 IDENTIF: main::1::p#lb37
-heap_domain.cpp:1806:get_symbol_pretty_name()
 Pretty: p
-heap_domain.cpp:638:get_symbol_loc()
 At location in SSA: 37
 ---------------------
 MATCH: p#34
