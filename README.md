@@ -8,6 +8,67 @@ CHANGED FILES
 * heap\_domain.h
 * heap\_domain.cpp
 
+CODE EXAMPLE
+============
+```cpp
+typedef struct elem {
+ struct elem *next;
+ int val;
+} elem_t;
+
+int main()
+{
+ int i[] = {1,2,3,4};
+ elem_t *head;
+
+ elem_t e1, e2, e3, e4;
+ head = &e1;
+ e1.val = i[0];
+ e1.next = &e2;
+
+ e2.val = i[1];
+ e2.next = &e3;
+
+ e3.val = i[2];
+ e3.next = &e4;
+
+ e4.val = i[3];
+
+ elem_t *p = head;
+
+ while (p)
+ {
+  printf("val %d\n", p->val);
+  p = p->next;
+
+  if (p)
+   p = p->next;
+ }
+ 
+ return 0;
+}
+```
+
+OUTPUT EXAMPLE
+==============
+```=====================
+INVARIANT IMPRECISION
+---------------------
+Variables:
+heap_domain.cpp:698:get_row_expr()
+p#lb37
+HEAP VAL: TRUE
+IDENTIF: main::1::p#lb37
+heap_domain.cpp:1806:get_symbol_pretty_name()
+Pretty: p
+heap_domain.cpp:638:get_symbol_loc()
+At location in SSA: 37
+---------------------
+MATCH: p#34
+MATCH: p#36
+
+-> Variable "p" in file main2.c line 34 function main
+```
 
 About
 =====
