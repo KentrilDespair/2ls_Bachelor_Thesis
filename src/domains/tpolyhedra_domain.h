@@ -148,6 +148,17 @@ public:
 
   void rename_for_row(exprt &expr, const rowt &row);
 
+  // TODO TODO
+  virtual void identify_invariant_imprecision(
+    const valuet &value,
+    std::vector<std::pair<unsigned, std::string>> &ssa_var_locs);
+
+  int get_symbol_loc(const exprt &expr);
+
+  void get_symbol_pretty_name(
+    const exprt &expr,
+    std::string &pretty);
+
 protected:
   friend class strategy_solver_binsearcht;
   friend class strategy_solvert;
