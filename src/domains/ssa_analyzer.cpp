@@ -211,16 +211,16 @@ void ssa_analyzert::operator()(
   solver_calls+=s_solver->get_number_of_solver_calls();
   solver_instances+=s_solver->get_number_of_solver_instances();
 
-  // TODO TODO TODO ---------------------------------------------------
 
-  // getting ssa vars identifs and locations
-  std::vector<std::pair<unsigned, std::string>> ssa_vars_locs;
+  // TODO ----------------------------------------------------
 
-  domain->identify_invariant_imprecision(*result, ssa_vars_locs);
-  // pass only necessary stuff and not big TODO
-  find_goto_instrs(SSA, ssa_vars_locs);
+  // getting imprecise ssa variables' names
+  std::vector<std::string> ssa_vars=domain->identify_invariant_imprecision(*result);
 
-  // ------------------------------------------------------------------
+  // TODO narrow down later passed stuff if possible
+  find_goto_instrs(SSA, ssa_vars);
+
+  // ---------------------------------------------------------
 
   delete s_solver;
 }
@@ -283,7 +283,7 @@ const exprt ssa_analyzert::input_heap_bindings()
 
 Function: ssa_analyzert::find_goto_instrs
 
-  Inputs: TODO
+  Inputs: TODO Is constantly changing now...
 
  Outputs: TODO
 
@@ -292,38 +292,43 @@ Function: ssa_analyzert::find_goto_instrs
 \*******************************************************************/
 void ssa_analyzert::find_goto_instrs(
   local_SSAt &SSA, 
-  std::vector<std::pair<unsigned, std::string>> &ssa_vars_locs)
+  std::vector<std::string> &ssa_vars)
 {
-  // for each variable at location in SSA
-  for (auto it=ssa_vars_locs.begin(); it!=ssa_vars_locs.end(); it++)
+  // getting each ssa variable name
+  for (auto it=ssa_vars.begin(); it!=ssa_vars.end(); it++)
   {
+    // get location of ssa var
+    int loc=get_name_loc(*it);
+    if (loc==-1)
+    {
+      debug() << "Input variable\n";
+      continue;
+    }
+
+    // get the pretty name of the imprecise ssa var
+    std::string var_pretty=get_pretty_name(*it);
+
     // get SSA node on that location - end of the loop for loop back var
-    local_SSAt::nodest::iterator a_it=SSA.find_node(
-      SSA.get_location(it->first));
+    local_SSAt::nodest::iterator lb_node=SSA.find_node(
+      SSA.get_location(static_cast<unsigned>(loc)));
 
-    // statement on location of loop back jump
-    // debug() << "Statement: " 
-    //  << from_expr(SSA.ns, "", *(a_it->equalities.begin())) << "\n";
+    // get start of the loop node (loophead node) for that node
+    local_SSAt::nodest::iterator lh_node=lb_node->loophead;
 
-    
-    // get start of the loop node for that node
-    local_SSAt::nodest::iterator loop_it=a_it->loophead;
     // node with the last assignment
     local_SSAt::nodest::iterator last_it; 
 
-    // starting after the loophead, should never be end TODO
-    loop_it++;  
+    // starting after the loophead, should never be end TODO make sure
+    lh_node++;
 
-    // looping through each node in the loop
-    while (loop_it!=a_it)
+    // looping through each ssa node in the loop
+    while (lh_node!=lb_node)
     {
       // TODO equalities only
       for (local_SSAt::nodet::equalitiest::const_iterator e_it=
-          loop_it->equalities.begin(); e_it!=loop_it->equalities.end();
+          lh_node->equalities.begin(); e_it!=lh_node->equalities.end();
           e_it++)
       {
-        // debug() << "(LOOP) " << from_expr(SSA.ns,"",e_it->lhs()) << "\n";
-
         // get the SSA variable identifier on the left-hand side
         std::string var_lhs=from_expr(SSA.ns, "", e_it->lhs());
 
@@ -331,39 +336,62 @@ void ssa_analyzert::find_goto_instrs(
         if (var_lhs[0]=='$')
           continue;
 
-        // strip of '#'
-        size_t idx=var_lhs.find('#');
-        if(idx!=std::string::npos)
-          var_lhs=var_lhs.substr(0, idx);
+        // get only the variable name - pretty name
+        var_lhs=get_pretty_name(var_lhs);
 
         // compare with the var 
-        if (it->second==var_lhs)
+        if (var_pretty==var_lhs)
         {
-          debug() << "MATCH: " << from_expr(SSA.ns, "",e_it->lhs()) << "\n";
-          last_it=loop_it;
+          debug() << "MATCH: " << from_expr(SSA.ns, "", e_it->lhs()) << "\n";
+          last_it=lh_node;
         }
-
-        // instruction at that location
-        // debug() << "STAT: " << from_expr(SSA.ns, "", 
-        //  loop_it->location->code); //code.get_statement() << "\n";
       }
-      loop_it++;
+      lh_node++;
     }
-
-    // type of instr: should be ASSIGN
-    // debug() << l_it->location->type << "\n";
-
-    // debug() << l_it->location->code.get_statement() << "\n";
-    // debug() << l_it->location->function << "\n";
-
-    // SSA loc: 
-    // debug() << l_it->location->location_number << "\n";
-
-    debug() << "\n-> Variable \"" << it->second << "\" in ";
-    debug() << last_it->location->source_location.as_string() << "\n\n";
-
-    // debug() << l_it->location->source_location.get_line() << "\n";
-    // debug() << l_it->location->source_location.get_comment() << "\n";
-    // debug() << l_it->location->source_location.get_function() << "\n";
+    debug() << "\n-> Variable \"" << var_pretty << "\" in ";
+    debug() << last_it->location->source_location.as_string() << "\n\n";  // TODO
   }
+}
+
+/*******************************************************************\
+
+Function: ssa_analyzert::get_name_loc(const std::string &name)
+
+  Inputs: SSA loop back variable name.
+
+ Outputs: Location of the node in the local SSA.
+
+ Purpose: Extract the node location from its ssa name.
+
+\*******************************************************************/
+int ssa_analyzert::get_name_loc(const std::string &name)
+{
+  if (name.find('#')==std::string::npos)
+    return -1;
+  
+  std::string loc_str=name.substr(name.find_last_not_of("0123456789")+1);
+  assert(!loc_str.empty());
+  return std::stoi(loc_str);
+}
+
+/*******************************************************************\
+
+Function: ssa_analyzert::get_pretty_name(const std::string &name)
+
+  Inputs: SSA loop back variable name.
+
+ Outputs: Pretty name of the SSA variable (only the part before '#').
+
+ Purpose: Strip the name of the part after '#' (and the '#' as well).
+
+\*******************************************************************/
+std::string ssa_analyzert::get_pretty_name(const std::string &name)
+{
+  std::string pretty(name);
+  size_t idx=name.find('#');
+
+  if(idx!=std::string::npos)
+    pretty=name.substr(0, idx);
+  
+  return pretty;
 }
