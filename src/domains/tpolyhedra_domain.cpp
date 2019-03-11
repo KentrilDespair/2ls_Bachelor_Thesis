@@ -7,10 +7,10 @@ Author: Peter Schrammel
 \*******************************************************************/
 
 // TODO
-// #ifdef DEBUG
+//#ifdef DEBUG
 #include <iostream>
 #include <langapi/languages.h>
-// #endif
+//#endif
 
 #include <util/find_symbols.h>
 #include <util/i2string.h>
@@ -24,9 +24,9 @@ Author: Peter Schrammel
 
 #define ENABLE_HEURISTICS
 
-#define ODebug() do {                                 \
-  std::cerr << __FILE__ << ":" << __LINE__ << ":" <<  \
-  __FUNCTION__ << "(): " << "\n"; } while(0)
+#define ODebug() do {                                        \
+	std::cerr << __FILE__ << ":" << __LINE__ << ":" <<                  \
+	__FUNCTION__ << "(): " << "\n"; } while(0)
 
 #define debug() (std::cerr)
 
@@ -419,6 +419,9 @@ exprt tpolyhedra_domaint::to_pre_constraints(valuet &_value)
   tpolyhedra_domaint::templ_valuet &value=
     static_cast<tpolyhedra_domaint::templ_valuet &>(_value);
   assert(value.size()==templ.size());
+
+//		(value[0].operands())[0].id_string() << "\"");
+
   exprt::operandst c;
   for(std::size_t row=0; row<templ.size(); ++row)
   {
@@ -1021,8 +1024,13 @@ void tpolyhedra_domaint::add_interval_template(
   unsigned size=2*var_specs.size();
   templ.reserve(templ.size()+size);
 
+	// TODO
+  debug() << "TPOLY_INTERVAL: " << size;
+
   for(const auto v : var_specs)
   {
+  	debug() << "TPOLY_VAR: " << v.var.id_string() << v.var.type().id();
+
     if(v.kind==IN)
       continue;
     if(v.var.type().id()==ID_pointer)
@@ -1064,6 +1072,8 @@ void tpolyhedra_domaint::add_difference_template(
 {
   std::size_t size=var_specs.size()*(var_specs.size()-1);
   templ.reserve(templ.size()+size);
+
+  debug() << "TPOLY_DIFFERENCE: " << size;	// TODO
 
   for(var_specst::const_iterator v1=var_specs.begin();
       v1!=var_specs.end(); ++v1)
@@ -1150,6 +1160,8 @@ void tpolyhedra_domaint::add_quadratic_template(
 {
   unsigned size=2*var_specs.size();
   templ.reserve(templ.size()+size);
+
+  debug() << "TPOLY_QUADRATIC: " << size;	// TODO
 
   for(const auto v : var_specs)
   {
@@ -1279,12 +1291,10 @@ void tpolyhedra_domaint::eliminate_sympaths(
   Purpose: TODO
 
 \*******************************************************************/
-void tpolyhedra_domaint::identify_invariant_imprecision(
-  const domaint::valuet &value,
-  std::vector<std::pair<unsigned, std::string>> &ssa_var_locs)
+std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
+  const domaint::valuet &value)
 {
   ODebug();
-
   debug() << "=====================\nINVARIANT IMPRECISION"
     << "\n---------------------\n";
 
@@ -1292,16 +1302,22 @@ void tpolyhedra_domaint::identify_invariant_imprecision(
   const templ_valuet &templ_val=static_cast<const templ_valuet &>(value);
   assert(templ_val.size()==templ.size());
 
-  debug() << "Variables:\n";
+  // var is true is both corresponding row values are max & min
+  bool parity=true;   // TODO needed for now
 
-  // comparison of max value every 2nd row
-  bool parity=true;
+  // vector for saving ssa variable names
+  std::vector<std::string> ssa_vars;
+
+  debug() << "Variables:\n";
 
   // going through template rows with corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
-    debug() << row << ": " << from_expr(domaint::ns, "", templ[row].expr)
-      << "\tType: " << templ[row].expr.type().id() << "\n";
+    // get template row expression
+    exprt tmpl_expr=templ[row].expr;
+    
+    debug() << row << ": " << from_expr(domaint::ns, "", tmpl_expr) 
+      << "\tType: " << tmpl_expr.type().id() << "\n";
 
     // getting the actual value of the template row
     row_valuet row_val=get_row_value(row, templ_val);
@@ -1309,61 +1325,22 @@ void tpolyhedra_domaint::identify_invariant_imprecision(
 
     if (parity)
     {
-      // max row value comparison
+      // min or max row value comparison
       row_valuet max_row_val;
       max_row_val=get_max_row_value(row);
 
+      // has unbounded value -> imprecise
       if (row_val==max_row_val)
       {
         debug() << "MAX\n";
-        // getting the SSA var location
-        int ssa_var_loc=get_symbol_loc(templ[row].expr);
 
-        // is input variable
-        if (ssa_var_loc==-1)
-        {
-          debug() << "Input variable\n";
-        }
-        else
-        {
-          // get symbol pretty name
-          std::string pretty;
-          get_symbol_pretty_name(templ[row].expr, pretty);
-
-          // save its pretty name and location
-          ssa_var_locs.push_back(
-            std::pair<unsigned, std::string> (
-            static_cast<unsigned>(ssa_var_loc), pretty));
-        }
+        // saving the ssa variable name
+        ssa_vars.push_back(from_expr(domaint::ns, "", tmpl_expr));
       }
     }
-    // every two rows comparison of max. value
     parity=!parity;
   }
   debug() << "\n---------------------\n";
-}
 
-// TODO will be disabled soon ...
-int tpolyhedra_domaint::get_symbol_loc(const exprt &expr)
-{
-  assert(expr.id()==ID_symbol);
-  std::string expr_id=id2string(to_symbol_expr(expr).get_identifier());
-  if(expr_id.find('#')==std::string::npos)
-    return -1;
-  std::string loc_str=expr_id.substr(expr_id.find_last_not_of("0123456789")+1);
-  assert(!loc_str.empty());
-  return std::stoi(loc_str);
-}
-
-void tpolyhedra_domaint::get_symbol_pretty_name(
-  const exprt &expr,
-  std::string &pretty)
-{
-  pretty=from_expr(domaint::ns, "", expr);
-
-  size_t idx=pretty.find('#');
-  if(idx==std::string::npos)
-    return;
-
-  pretty=pretty.substr(0, idx);
+  return ssa_vars;
 }
