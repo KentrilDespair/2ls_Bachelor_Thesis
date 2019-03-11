@@ -262,13 +262,10 @@ public:
     return templ.empty();
   }
 
-  // TODO TODO
-  virtual void identify_invariant_imprecision(
-    const valuet &value, 
-    std::vector<std::pair<unsigned, std::string>> &ssa_var_locs) override;
-
-  // TODO TODO
-  void get_symbol_pretty_name(const exprt &expr, std::string &pretty);
+  // TODO --------------------------------------------------------
+  virtual std::vector<std::string> identify_invariant_imprecision(
+    const valuet &value) override;
+  // -------------------------------------------------------------
 
 protected:
   templatet templ;
