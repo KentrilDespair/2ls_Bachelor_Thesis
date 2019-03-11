@@ -50,10 +50,14 @@ public:
   inline unsigned get_number_of_solver_instances() { return solver_instances; }
   inline unsigned get_number_of_solver_calls() { return solver_calls; }
 
-  // TODO TODO
+  // TODO ---------------------------------------------
   void find_goto_instrs(
     local_SSAt &SSA, 
-    std::vector<std::pair<unsigned, std::string>> &ssa_vars_locs);
+    std::vector<std::string> &ssa_vars);
+
+  int get_name_loc(const std::string &name);
+  std::string get_pretty_name(const std::string &name);
+  // --------------------------------------------------
 
 protected:
   domaint *domain; // template generator is responsable for the domain object
