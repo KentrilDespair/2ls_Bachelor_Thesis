@@ -300,10 +300,13 @@ public:
     const var_specst &var_specs,
     const namespacet &ns);
 
-  // TODO TODO TODO TODO TODO TODO TODO 
-  virtual void identify_invariant_imprecision(
-    const valuet &value, 
-    std::vector<std::pair<unsigned, std::string>> &ssa_var_locs) {}
+  // TODO --------------------------------------------------------
+  virtual std::vector<std::string> identify_invariant_imprecision(
+    const valuet &value)
+  { 
+    return {}; 
+  }
+  // -------------------------------------------------------------
 
 protected:
   unsigned domain_number; // serves as id for variables names
