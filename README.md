@@ -7,9 +7,12 @@ CHANGED FILES
 * domain.h
 * heap\_domain.h
 * heap\_domain.cpp
+* tpolyhedra\_domain.h
+* tpolyhedra\_domain.cpp
 
-CODE EXAMPLE
-============
+CODE EXAMPLES
+=============
+## 1. Heap domain
 ```cpp
 typedef struct elem {
  struct elem *next;
@@ -48,24 +51,71 @@ int main()
  return 0;
 }
 ```
-
-OUTPUT EXAMPLE
-==============
+## $ ./2ls main.c --heap --inline
 ```
 ...
-=====================
 INVARIANT IMPRECISION
 ---------------------
 Variables:
-p#lb37 VAL: TRUE
-IDENTIF: main::1::p#lb37
-Pretty: p
-At location in SSA: 37
+Variables:
+0: p#lb37 VAL: TRUE EXPR.ID: symbol
 ---------------------
 MATCH: p#34
 MATCH: p#36
 
 -> Variable "p" in file main2.c line 34 function main
+...
+```
+## 2. Template Polyhedra domain
+```cpp
+void main()
+{
+  int x = 0;
+  unsigned y = 0;
+
+  while (x || y < 10) 
+  {
+    --x;
+    --y;
+    ++x;
+    --x;
+    --y;         // line 12
+    x = -y - x;  // line 13
+  }
+
+  assert(x == 10);
+}
+```
+## $ ./2ls main.c --intervals --inline
+
+```
+...
+INVARIANT IMPRECISION
+---------------------
+Variables:
+0: x#lb26	Type: signedbv
+	VAL: 01111111111111111111111111111111
+MAX
+1: -((signed __CPROVER_bitvector[33])x#lb26)	Type: signedbv
+	VAL: 010000000000000000000000000000000
+2: y#lb26	Type: unsignedbv
+	VAL: 11111111111111111111111111111111
+MAX
+3: -((signed __CPROVER_bitvector[33])y#lb26)	Type: signedbv
+	VAL: 000000000000000000000000000000000
+
+---------------------
+MATCH: x#20
+MATCH: x#22
+MATCH: x#23
+MATCH: x#25
+
+-> Variable "x" in file main.c line 13 function main
+
+MATCH: y#21
+MATCH: y#24
+
+-> Variable "y" in file main.c line 12 function main
 ...
 ```
 
