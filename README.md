@@ -12,7 +12,7 @@ CHANGED FILES
 
 CODE EXAMPLES
 =============
-## 1. Heap domain
+### 1. Heap domain
 ```cpp
 typedef struct elem {
  struct elem *next;
@@ -51,7 +51,7 @@ int main()
  return 0;
 }
 ```
-## $ ./2ls main.c --heap --inline
+### $ ./2ls main.c --heap --inline
 ```
 ...
 INVARIANT IMPRECISION
@@ -66,7 +66,7 @@ MATCH: p#36
 -> Variable "p" in file main2.c line 34 function main
 ...
 ```
-## 2. Template Polyhedra domain
+### 2. Template Polyhedra domain
 ```cpp
 void main()
 {
@@ -86,7 +86,7 @@ void main()
   assert(x == 10);
 }
 ```
-## $ ./2ls main.c --intervals --inline
+### $ ./2ls main.c --intervals --inline
 
 ```
 ...
