@@ -30,7 +30,7 @@ Function: heap_domaint::initialize
 void heap_domaint::initialize(domaint::valuet &value)
 {
   heap_valuet &val=static_cast<heap_valuet &>(value);
-  debug() << "\nInitializing abstract value: " << value.basic_value << "\n";
+  output_domain(std::cout, domaint::ns);
 
   for(const template_rowt &templ_row : templ)
   {
@@ -1385,6 +1385,7 @@ const exprt heap_domaint::iterator_access_bindings(
 {
   const std::set<symbol_exprt> reachable=
     reachable_objects(init_pointer, fields, precondition);
+  debug() << "FIELDS: " << fields[0] << "\n";
 
   exprt::operandst d;
   for(const symbol_exprt &r : reachable)
@@ -2024,9 +2025,8 @@ Function: heap_domaint::identify_invariant_imprecision
 
 \*******************************************************************/
 
-void heap_domaint::identify_invariant_imprecision(
-  const domaint::valuet &value,
-  std::vector<std::pair<unsigned, std::string>> &ssa_var_locs)
+std::vector<std::string> heap_domaint::identify_invariant_imprecision(
+  const domaint::valuet &value)
 {
   debug() << "=====================\nINVARIANT IMPRECISION"
     << "\n---------------------\n";
@@ -2034,79 +2034,45 @@ void heap_domaint::identify_invariant_imprecision(
   // get corresponding template row values
   const heap_valuet &val=static_cast<const heap_valuet &>(value);
   assert(val.size()==templ.size());
+
+  // vector for saving ssa variable names
+  std::vector<std::string> ssa_vars;
  
   debug() << "Variables:\n";
-  // loop through the templates with corresponding values
+  // loop through the template rows with corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
-    // debug() << from_expr(ns, "", templ[row].expr) << "\n";
-    //  << id2string(to_symbol_expr(templ[row].expr).get_identifier())
-    //  << "\n"
+    // get template row expression
+    exprt tmpl_expr=templ[row].expr;
 
     // get the actual value for this template row
-    const exprt row_expr=val[row].get_row_expr(templ[row].expr, false);
+    const exprt row_expr=val[row].get_row_expr(tmpl_expr, false);
     
     // row value is nondeterministic
     if (row_expr.is_true()) 
     {
-      debug() << from_expr(domaint::ns, "", templ[row].expr)
-        << "\tVAL: " << from_expr(domaint::ns, "", row_expr) << "\n";
+      debug() << row << ": " << from_expr(domaint::ns, "", tmpl_expr)
+        << "\tVAL: " << from_expr(domaint::ns, "", row_expr)
+        << "\tEXPR.ID: " << tmpl_expr.id() << "\n";
 
-      // get the SSA variable identifier
-      const irep_idt &identifier=
-        to_symbol_expr(templ[row].expr).get_identifier();
-      debug() << "IDENTIF: " << identifier << "\n";
-
-      std::string pretty;
-      get_symbol_pretty_name(templ[row].expr, pretty);
-      debug() << "Pretty: " << pretty << "\n";
-
-      // TODO can't be used for extra-var like loopback
-      // const symbolt symbol = domaint::ns.lookup(identifier);
-      // debug() << "Symbol: "  << symbol.display_name() << "\n";
-
-      // get location of SSA var
-      int ssa_var_loc=get_symbol_loc(templ[row].expr);
-
-      // is input variable
-      if (ssa_var_loc==-1)
+      // TODO dynamic
+      if (tmpl_expr.id()==ID_and)
       {
-        debug() << "Input variable\n";
-        // TODO END
-        continue;
+        // getting the dynamic operand
+        for (auto &op : tmpl_expr.operands())
+        {
+          debug() << from_expr(domaint::ns, "", op) << "\n";
+          std::string op_str=from_expr(domaint::ns, "", op);
+          if (op_str.find("__CPROVER_deallocated")==std::string::npos)
+            tmpl_expr=op;   // TODO no dynamic is found??
+        }
       }
 
-      debug() << "At location in SSA: " << ssa_var_loc << "\n";
-
-      ssa_var_locs.push_back(
-        std::pair<unsigned, std::string> (
-          static_cast<unsigned>(ssa_var_loc), pretty)); 
+      // saving the ssa variable name
+      ssa_vars.push_back(from_expr(domaint::ns, "", tmpl_expr));
     }
   }
   debug() << "---------------------\n";
-}
 
-/*******************************************************************\
-
-Function: heap_domaint::get_symbol_pretty_name(const exprt &expr)
-
-  Inputs: Symbol expression. TODO
-
- Outputs: TODO
-
- Purpose: Get pretty name of the symbol expression
-
-\*******************************************************************/
-
-void heap_domaint::get_symbol_pretty_name(
-  const exprt &expr, 
-  std::string &pretty)
-{
-  pretty=from_expr(domaint::ns, "", expr);
-
-  size_t idx=pretty.find('#');
-  if(idx==std::string::npos)
-    return;
-
-  pretty=pretty.substr(0, idx);
+  return ssa_vars;
 }
