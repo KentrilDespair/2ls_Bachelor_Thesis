@@ -1271,11 +1271,11 @@ void tpolyhedra_domaint::eliminate_sympaths(
 
  Function: tpolyhedra_domaint::identify_invariant_imprecision
 
-   Inputs: TODO
+   Inputs: Computed invariant
 
-  Outputs: TODO
+  Outputs: Vector of imprecise SSA variable names
 
-  Purpose: TODO
+  Purpose: Identify imprecise template variables inside invariant
 
 \*******************************************************************/
 std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
@@ -1285,39 +1285,36 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
   const templ_valuet &templ_val=static_cast<const templ_valuet &>(value);
   assert(templ_val.size()==templ.size());
 
-  // var is true is both corresponding row values are max & min
-  bool parity=true;   // TODO needed for now
+  // only first of both template rows for one variable is compared
+  bool first_row=true;
 
   // vector for saving ssa variable names
   std::vector<std::string> ssa_vars;
 
-  // going through template rows with corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
     // get template row expression
     exprt tmpl_expr=templ[row].expr;
-    
-    debug() << row << ": " << from_expr(domaint::ns, "", tmpl_expr) 
-      << "\tType: " << tmpl_expr.type().id() << "\n";
 
-    // getting the actual value of the template row
-    row_valuet row_val=get_row_value(row, templ_val);
-    debug() << "\tVAL: " << row_val.get_value() << "\n";
-
-    if (parity)
+    // only the "maximum" row of both rows is compared
+    if (first_row)
     {
-      // min or max row value comparison
-      row_valuet max_row_val;
-      max_row_val=get_max_row_value(row);
+      // getting the actual value of the template row
+      row_valuet row_val=get_row_value(row, templ_val);
 
-      // has unbounded value -> imprecise
-      if (row_val==max_row_val)
+      // is maximum row value = has unbounded value
+      if (row_val==get_max_row_value(row))
       {
-        // saving the ssa variable name
-        ssa_vars.push_back(from_expr(domaint::ns, "", tmpl_expr));
+        // get the template row expression variable name
+        std::string expr_name=from_expr(domaint::ns, "", tmpl_expr);
+
+        debug() << ssa_vars.size()+1 << ": " << expr_name
+          << "\tValue: " << row_val.get_value() << "\n";
+
+        ssa_vars.push_back(expr_name);
       }
     }
-    parity=!parity;
+    first_row=!first_row;
   }
 
   return ssa_vars;
