@@ -2010,11 +2010,11 @@ const exprt heap_domaint::get_points_to_dest(
 
 Function: heap_domaint::identify_invariant_imprecision
 
-  Inputs: TODO
+  Inputs: Computed invariant
 
- Outputs:
+ Outputs: Vector of imprecise SSA variable names
 
- Purpose: TODO
+ Purpose: Identify imprecise template variables of invariant
 
 \*******************************************************************/
 
@@ -2028,7 +2028,6 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
   // vector for saving ssa variable names
   std::vector<std::string> ssa_vars;
  
-  // loop through the template rows with corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
     // get template row expression
@@ -2040,25 +2039,17 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
     // row value is nondeterministic
     if (row_expr.is_true()) 
     {
-      debug() << row << ": " << from_expr(domaint::ns, "", tmpl_expr)
-        << "\tVAL: " << from_expr(domaint::ns, "", row_expr)
-        << "\tEXPR.ID: " << tmpl_expr.id() << "\n";
+      // Only template expressions that are of symbol type
+      if (tmpl_expr.id()!=ID_symbol)
+        continue;
 
-      // TODO dynamic
-      if (tmpl_expr.id()==ID_and)
-      {
-        // getting the dynamic operand
-        for (auto &op : tmpl_expr.operands())
-        {
-          debug() << from_expr(domaint::ns, "", op) << "\n";
-          std::string op_str=from_expr(domaint::ns, "", op);
-          if (op_str.find("__CPROVER_deallocated")==std::string::npos)
-            tmpl_expr=op;   // TODO no dynamic is found??
-        }
-      }
+      // the template row expression variable name
+      std::string expr_name=from_expr(domaint::ns, "", tmpl_expr);
 
-      // saving the ssa variable name
-      ssa_vars.push_back(from_expr(domaint::ns, "", tmpl_expr));
+      debug() << ssa_vars.size()+1 << ": " << expr_name
+        << "\tValue: " << from_expr(domaint::ns, "", row_expr) << "\n";
+
+      ssa_vars.push_back(expr_name);
     }
   }
 
