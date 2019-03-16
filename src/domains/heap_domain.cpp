@@ -2045,8 +2045,8 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
       // the template row expression variable name
       std::string expr_name=from_expr(domaint::ns, "", tmpl_expr);
 
-      debug() << ssa_vars.size()+1 << ": " << expr_name
-        << "\tValue: " << from_expr(domaint::ns, "", row_expr) << "\n";
+      debug() << ssa_vars.size()+1 << ": " << expr_name << "\n";
+//        << "\tValue: " << from_expr(domaint::ns, "", row_expr) << "\n";
 
       ssa_vars.push_back(expr_name);
     }

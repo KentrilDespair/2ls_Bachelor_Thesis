@@ -1308,8 +1308,8 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
         // get the template row expression variable name
         std::string expr_name=from_expr(domaint::ns, "", tmpl_expr);
 
-        debug() << ssa_vars.size()+1 << ": " << expr_name
-          << "\tValue: " << row_val.get_value() << "\n";
+        debug() << ssa_vars.size()+1 << ": " << expr_name << "\n";
+//          << "\tValue: " << row_val.get_value() << "\n";
 
         ssa_vars.push_back(expr_name);
       }
