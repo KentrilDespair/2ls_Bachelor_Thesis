@@ -1,7 +1,8 @@
 [![Build Status][build_img]][travis]
 
-CHANGED FILES
-=============
+# Imprecise Invariant Identification for Abstract Domains
+
+## Edited Files
 * ssa\_analyzer.h
 * ssa\_analyzer.cpp
 * domain.h
@@ -10,112 +11,126 @@ CHANGED FILES
 * tpolyhedra\_domain.h
 * tpolyhedra\_domain.cpp
 
-CODE EXAMPLES
-=============
-### 1. Heap domain
+## Code Examples
+
+### 1. Template Polyhedra domain
 ```cpp
-typedef struct elem {
- struct elem *next;
- int val;
-} elem_t;
-
-int main()
-{
- int i[] = {1,2,3,4};
- elem_t *head;
-
- elem_t e1, e2, e3, e4;
- head = &e1;
- e1.val = i[0];
- e1.next = &e2;
-
- e2.val = i[1];
- e2.next = &e3;
-
- e3.val = i[2];
- e3.next = &e4;
-
- e4.val = i[3];
-
- elem_t *p = head;
-
- while (p)
- {
-  printf("val %d\n", p->val);
-  p = p->next;
-
-  if (p)
-   p = p->next;  // line 34
- }
- 
- return 0;
-}
+1  void main()
+2  {
+3    int x = 0;
+4    unsigned y = 0;
+5
+6    while (x || y < 10)
+7    {
+8      --x;
+9      ++y;
+10     x = -y - x;
+11   }
+12 }
 ```
+
+### $ ./2ls main.c --intervals --inline
+```
+...
+Computing summary
+
+Invariant Imprecision Identification
+------------------------------------
+Variables:
+1: x#lb23
+2: y#lb23
+------------------------------------
+1: Imprecise value of variable "x" at the end of the loop, that starts at line 6
+2: Imprecise value of variable "y" at the end of the loop, that starts at line 6
+
+Summary for function _start
+...
+```
+
+### 2. Heap domain
+#### - static variables
+```cpp
+1  typedef struct elem {
+2    struct elem *next;
+3  } elem_t;
+4 
+5  void main()
+6  {
+7    elem_t *head;
+8    elem_t e1, e2, e3;
+9    
+10   head = &e1;
+11   e1.next = &e2;
+12   e2.next = &e3;
+13   
+14   elem_t *p = head;
+15   while (p)
+16   { 
+17     p = p->next;
+18   } 
+19 }
+```
+
 ### $ ./2ls main.c --heap --inline
 ```
 ...
-INVARIANT IMPRECISION
----------------------
+Computing summary
+ 
+Invariant Imprecision Identification
+------------------------------------
 Variables:
-Variables:
-0: p#lb37 VAL: TRUE EXPR.ID: symbol
----------------------
-MATCH: p#34
-MATCH: p#36
+1: p#lb26
+------------------------------------
+1: Imprecise value of variable "p" at the end of the loop, that starts at li    ne 15
 
--> Variable "p" in file main2.c line 34 function main
+Summary for function _start
 ...
 ```
-### 2. Template Polyhedra domain
+
+#### - dynamic variables
 ```cpp
-void main()
-{
-  int x = 0;
-  unsigned y = 0;
-
-  while (x || y < 10) 
-  {
-    --x;
-    --y;
-    ++x;
-    --x;
-    --y;         // line 12
-    x = -y - x;  // line 13
-  }
-
-  assert(x == 10);
-}
+1  typedef struct elem {
+2    struct elem *next;
+3  } *elem_t;
+4 
+5  void main()
+6  {
+7    elem_t head, elem;
+8 
+9    for (unsigned i = 0; i < 2; i++)
+10   {
+11     elem = (elem_t) malloc(sizeof(struct elem));
+12     elem->next = head;
+13     head = elem; 
+14   } 
+15   
+16   elem = head;
+17   while (elem)
+18   {
+19     elem = elem->next;
+20   } 
+21 }
 ```
-### $ ./2ls main.c --intervals --inline
 
+### $ ./2ls main.c --heap --inline
 ```
 ...
-INVARIANT IMPRECISION
----------------------
+Computing summary
+
+Invariant Imprecision Identification
+------------------------------------
 Variables:
-0: x#lb26	Type: signedbv
-	VAL: 01111111111111111111111111111111
-MAX
-1: -((signed __CPROVER_bitvector[33])x#lb26)	Type: signedbv
-	VAL: 010000000000000000000000000000000
-2: y#lb26	Type: unsignedbv
-	VAL: 11111111111111111111111111111111
-MAX
-3: -((signed __CPROVER_bitvector[33])y#lb26)	Type: signedbv
-	VAL: 000000000000000000000000000000000
+1: dynamic_object$27#2.next#lb50
+2: dynamic_object$27#1.next#lb50
+3: dynamic_object$27#0.next#lb50
+4: elem#lb55
+------------------------------------
+1: Imprecise value of "next" field of dynamic object "dynamic_object$27#2.next#lb50" allocated at line 11 
+2: Imprecise value of "next" field of dynamic object "dynamic_object$27#1.next#lb50" allocated at line 11 
+3: Imprecise value of "next" field of dynamic object "dynamic_object$27#0.next#lb50" allocated at line 11 
+4: Imprecise value of variable "elem" at the end of the loop, that starts at line 17 
 
----------------------
-MATCH: x#20
-MATCH: x#22
-MATCH: x#23
-MATCH: x#25
-
--> Variable "x" in file main.c line 13 function main
-
-MATCH: y#21
-MATCH: y#24
-
--> Variable "y" in file main.c line 12 function main
+Summary for function _start
 ...
 ```
 
