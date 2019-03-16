@@ -6,6 +6,7 @@ Author: Peter Schrammel
 
 \*******************************************************************/
 
+// TODO
 #include <iostream>
 
 #include <solvers/sat/satcheck.h>
@@ -42,10 +43,7 @@ Author: Peter Schrammel
   *static_cast<tpolyhedra_domaint *>(domain), solver, SSA, SSA.ns)
 #endif
 
-#define ODebug(fmt) do {								\
-	std::cerr << __FILE__ << ":" << __LINE__ << ":" << 	\
-	__FUNCTION__ << "():" << fmt << "\n"; } while(0)	
-
+// TODO
 #define debug() (std::cerr)
 
 /*******************************************************************\
@@ -78,7 +76,6 @@ void ssa_analyzert::operator()(
   // add precondition (or conjunction of asssertion in backward analysis)
   solver << precondition;
 
-  ODebug("DOmain: ");
   domain=template_generator.domain();
 
   // get strategy solver from options
@@ -160,7 +157,7 @@ void ssa_analyzert::operator()(
   }
   else
   {
-    if(template_generator.options.get_bool_option("enum-solver"))//> TODO HERE
+    if(template_generator.options.get_bool_option("enum-solver"))
     {
       s_solver=new strategy_solvert(
         *static_cast<tpolyhedra_domaint *>(domain),
@@ -182,9 +179,8 @@ void ssa_analyzert::operator()(
         template_generator);
       result=new predabs_domaint::templ_valuet();
     }
-    else if(template_generator.options.get_bool_option("binsearch-solver"))	//> TODO HERE
+    else if(template_generator.options.get_bool_option("binsearch-solver"))	
     {
-		ODebug("Binsearch-solver new templ_valuet");
       result=new tpolyhedra_domaint::templ_valuet();
       s_solver=new BINSEARCH_SOLVER;
     }
@@ -195,11 +191,7 @@ void ssa_analyzert::operator()(
   s_solver->set_message_handler(get_message_handler());
 
   // initialize inv
-  ODebug("Solver INITIALIZE domain");
   domain->initialize(*result);
-
-  ODebug("Solver - OUTPUTTING SSA");
-  SSA.output(std::cout);
 
   // iterate
   while(s_solver->iterate(*result)) {}
@@ -213,9 +205,15 @@ void ssa_analyzert::operator()(
 
 
   // TODO ----------------------------------------------------
+  debug() << "------------------------------------\n"
+    <<       "Invariant Imprecision Identification\n"
+    << "Variables:\n";
 
   // getting imprecise ssa variables' names
-  std::vector<std::string> ssa_vars=domain->identify_invariant_imprecision(*result);
+  std::vector<std::string> ssa_vars=
+    domain->identify_invariant_imprecision(*result);
+
+  debug() << "------------------------------------\n";
 
   // TODO narrow down later passed stuff if possible
   find_goto_instrs(SSA, ssa_vars);
@@ -239,8 +237,6 @@ Function: ssa_analyzert::get_result
 
 void ssa_analyzert::get_result(exprt &_result, const domaint::var_sett &vars)
 {
-	ODebug("Getting result... HERE");
-  // TODO
   domain->project_on_vars(*result, vars, _result);
 }
 
