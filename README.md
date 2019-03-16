@@ -2,8 +2,9 @@
 
 # Imprecise Invariant Identification for Abstract Domains
 
-Identification of template variables, which have imprecise values inside computed 
-invariant for supported abstract domains in 2LS framework.
+Identification and in source localization of template variables, which 
+have imprecise values inside computed invariant for supported abstract
+domains in 2LS framework.
 
 
 ## Edited Files
