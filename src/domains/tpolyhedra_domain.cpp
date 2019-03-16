@@ -24,10 +24,6 @@ Author: Peter Schrammel
 
 #define ENABLE_HEURISTICS
 
-#define ODebug() do {                                        \
-	std::cerr << __FILE__ << ":" << __LINE__ << ":" <<                  \
-	__FUNCTION__ << "(): " << "\n"; } while(0)
-
 #define debug() (std::cerr)
 
 /*******************************************************************\
@@ -1024,13 +1020,8 @@ void tpolyhedra_domaint::add_interval_template(
   unsigned size=2*var_specs.size();
   templ.reserve(templ.size()+size);
 
-	// TODO
-  debug() << "TPOLY_INTERVAL: " << size;
-
   for(const auto v : var_specs)
   {
-  	debug() << "TPOLY_VAR: " << v.var.id_string() << v.var.type().id();
-
     if(v.kind==IN)
       continue;
     if(v.var.type().id()==ID_pointer)
@@ -1072,8 +1063,6 @@ void tpolyhedra_domaint::add_difference_template(
 {
   std::size_t size=var_specs.size()*(var_specs.size()-1);
   templ.reserve(templ.size()+size);
-
-  debug() << "TPOLY_DIFFERENCE: " << size;	// TODO
 
   for(var_specst::const_iterator v1=var_specs.begin();
       v1!=var_specs.end(); ++v1)
@@ -1160,8 +1149,6 @@ void tpolyhedra_domaint::add_quadratic_template(
 {
   unsigned size=2*var_specs.size();
   templ.reserve(templ.size()+size);
-
-  debug() << "TPOLY_QUADRATIC: " << size;	// TODO
 
   for(const auto v : var_specs)
   {
@@ -1294,10 +1281,6 @@ void tpolyhedra_domaint::eliminate_sympaths(
 std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
   const domaint::valuet &value)
 {
-  ODebug();
-  debug() << "=====================\nINVARIANT IMPRECISION"
-    << "\n---------------------\n";
-
   // get template row values
   const templ_valuet &templ_val=static_cast<const templ_valuet &>(value);
   assert(templ_val.size()==templ.size());
@@ -1307,8 +1290,6 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
 
   // vector for saving ssa variable names
   std::vector<std::string> ssa_vars;
-
-  debug() << "Variables:\n";
 
   // going through template rows with corresponding values
   for (rowt row=0; row<templ.size(); row++)
@@ -1332,15 +1313,12 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
       // has unbounded value -> imprecise
       if (row_val==max_row_val)
       {
-        debug() << "MAX\n";
-
         // saving the ssa variable name
         ssa_vars.push_back(from_expr(domaint::ns, "", tmpl_expr));
       }
     }
     parity=!parity;
   }
-  debug() << "\n---------------------\n";
 
   return ssa_vars;
 }
