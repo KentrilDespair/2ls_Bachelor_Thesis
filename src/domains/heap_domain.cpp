@@ -66,11 +66,9 @@ void heap_domaint::make_template(
   const domaint::var_specst &var_specs,
   const namespacet &ns)
 {
-  ODebug(); 
   unsigned long size=var_specs.size();
   templ.clear();
   templ.reserve(size);
-  debug() << "\nHEAP: Making template of size: " << size << "\n";
 
   for(const var_spect &v : var_specs)
   {
@@ -151,10 +149,7 @@ void heap_domaint::add_template_row(
   const var_spect &var_spec,
   const typet &pointed_type)
 {
-  ODebug(); 
   const vart &var=var_spec.var;
-
-  debug() << "\nHTEMPLATE ROW FOR VAR: " << id2string(to_symbol_expr(var).get_identifier()) << "\n";
 
   templ.push_back(template_rowt());
   template_rowt &templ_row=templ.back();
@@ -208,7 +203,6 @@ void heap_domaint::add_template_row_pair(
   const domaint::var_spect &var_spec2,
   const typet &pointed_type)
 {
-  ODebug(); 
   const exprt var_pair=and_exprt(var_spec1.var, var_spec2.var);
 
   templ.push_back(template_rowt());
@@ -1385,7 +1379,6 @@ const exprt heap_domaint::iterator_access_bindings(
 {
   const std::set<symbol_exprt> reachable=
     reachable_objects(init_pointer, fields, precondition);
-  debug() << "FIELDS: " << fields[0] << "\n";
 
   exprt::operandst d;
   for(const symbol_exprt &r : reachable)
@@ -2028,9 +2021,6 @@ Function: heap_domaint::identify_invariant_imprecision
 std::vector<std::string> heap_domaint::identify_invariant_imprecision(
   const domaint::valuet &value)
 {
-  debug() << "=====================\nINVARIANT IMPRECISION"
-    << "\n---------------------\n";
-
   // get corresponding template row values
   const heap_valuet &val=static_cast<const heap_valuet &>(value);
   assert(val.size()==templ.size());
@@ -2038,7 +2028,6 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
   // vector for saving ssa variable names
   std::vector<std::string> ssa_vars;
  
-  debug() << "Variables:\n";
   // loop through the template rows with corresponding values
   for (rowt row=0; row<templ.size(); row++)
   {
@@ -2072,7 +2061,6 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
       ssa_vars.push_back(from_expr(domaint::ns, "", tmpl_expr));
     }
   }
-  debug() << "---------------------\n";
 
   return ssa_vars;
 }
