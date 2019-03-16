@@ -30,7 +30,6 @@ Function: heap_domaint::initialize
 void heap_domaint::initialize(domaint::valuet &value)
 {
   heap_valuet &val=static_cast<heap_valuet &>(value);
-  output_domain(std::cout, domaint::ns);
 
   for(const template_rowt &templ_row : templ)
   {
