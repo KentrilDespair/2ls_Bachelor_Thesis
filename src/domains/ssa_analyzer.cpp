@@ -46,6 +46,9 @@ Author: Peter Schrammel
 // TODO
 #define debug() (std::cerr)
 
+// dynamic object prefix string length
+#define DYN_PRFX_LEN 16
+
 /*******************************************************************\
 
 Function: ssa_analyzert::operator()
@@ -279,21 +282,30 @@ const exprt ssa_analyzert::input_heap_bindings()
 
 Function: ssa_analyzert::find_goto_instrs
 
-  Inputs: TODO Is constantly changing now...
+  Inputs: Local SSA, vector of SSA loop back variable names
 
- Outputs: TODO
+ Outputs: 
 
- Purpose: TODO
+ Purpose: Map the SSA variable names back to the source program.
 
 \*******************************************************************/
 void ssa_analyzert::find_goto_instrs(
   local_SSAt &SSA, 
   std::vector<std::string> &ssa_vars)
 {
+  // name counter
+  unsigned nth_name=0;    // TODO subst the iterator with cntr?
+
   // getting each ssa variable name
   for (auto it=ssa_vars.begin(); it!=ssa_vars.end(); it++)
   {
-    // get location of ssa var
+    nth_name++;
+    debug() << nth_name << ": ";
+
+    // heap domain specific, dynamic objects
+    bool is_dynamic=((it->substr(0, DYN_PRFX_LEN-1))=="dynamic_object$");
+
+    // get location of SSA var
     int loc=get_name_loc(*it);
     if (loc==-1)
     {
@@ -311,41 +323,29 @@ void ssa_analyzert::find_goto_instrs(
     // get start of the loop node (loophead node) for that node
     local_SSAt::nodest::iterator lh_node=lb_node->loophead;
 
-    // node with the last assignment
-    local_SSAt::nodest::iterator last_it; 
-
-    // starting after the loophead, should never be end TODO make sure
-    lh_node++;
-
-    // looping through each ssa node in the loop
-    while (lh_node!=lb_node)
+    // heap dynamic objects
+    if (is_dynamic)
     {
-      // TODO equalities only
-      for (local_SSAt::nodet::equalitiest::const_iterator e_it=
-          lh_node->equalities.begin(); e_it!=lh_node->equalities.end();
-          e_it++)
+      // getting the object's allocation location
+      int field_loc=get_field_loc(*it);
+      if (field_loc==-1)
       {
-        // get the SSA variable identifier on the left-hand side
-        std::string var_lhs=from_expr(SSA.ns, "", e_it->lhs());
-
-        // skip any guards, conditions, ... starting with '$'
-        if (var_lhs[0]=='$')
-          continue;
-
-        // get only the variable name - pretty name
-        var_lhs=get_pretty_name(var_lhs);
-
-        // compare with the var 
-        if (var_pretty==var_lhs)
-        {
-          debug() << "MATCH: " << from_expr(SSA.ns, "", e_it->lhs()) << "\n";
-          last_it=lh_node;
-        }
+        debug() << "Allocation location not found\n";
+        continue;
       }
-      lh_node++;
+
+      debug() << "Imprecise value of \"" << get_dynamic_member(*it)
+        << "\" field of dynamic object \"" << *it << "\" allocated at line "
+        << (SSA.find_node(SSA.get_location(
+          static_cast<unsigned>(field_loc)
+            )))->location->source_location.get_line() << "\n";
+
+      return; 
     }
-    debug() << "\n-> Variable \"" << var_pretty << "\" in ";
-    debug() << last_it->location->source_location.as_string() << "\n\n";  // TODO
+    
+    debug() << "Imprecise value of variable \"" << var_pretty
+      << "\" at the end of the loop, that starts on line "
+      << lh_node->location->source_location.get_line() << "\n";
   }
 }
 
@@ -390,4 +390,55 @@ std::string ssa_analyzert::get_pretty_name(const std::string &name)
     pretty=name.substr(0, idx);
   
   return pretty;
+}
+
+/*******************************************************************\
+
+Function: ssa_analyzert::get_field_loc(const std::string &name)
+
+  Inputs: SSA loop back dynamic variable name.
+
+ Outputs: Location of the field in the local SSA.
+
+ Purpose: Extract the field location from its SSA name.
+
+\*******************************************************************/
+int ssa_analyzert::get_field_loc(const std::string &name)
+{
+  size_t field_pos=name.find_last_of('$');
+  if (field_pos==std::string::npos)
+    return -1;
+
+  std::string loc_str=name.substr(field_pos+1);
+  return std::stoi(loc_str);
+}
+
+/*******************************************************************\
+
+Function: ssa_analyzert::get_dynamic_member(const std::string &name)
+
+  Inputs: SSA loop back dynamic object name.
+
+ Outputs: Member of the dynamic object.
+
+ Purpose: Extract the member field from the dynamic object name.
+
+\*******************************************************************/
+std::string ssa_analyzert::get_dynamic_member(const std::string &name)
+{
+  // only dynamic objects: expecting dollar sign at pos 14
+  assert(name[DYN_PRFX_LEN-2]=='$');
+
+  std::string not_found ("<NO MEMBER>");
+
+  size_t dot_pos=name.find_last_of('.');
+  size_t hash_pos=name.find_last_of('#');
+  if (dot_pos==std::string::npos || hash_pos==std::string::npos)
+    return not_found;
+
+  std::string loc_str=name.substr(dot_pos+1, hash_pos-dot_pos-1);
+  if (loc_str.empty())
+    return not_found;
+
+  return loc_str;
 }
