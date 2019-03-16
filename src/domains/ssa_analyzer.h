@@ -57,10 +57,13 @@ public:
 
   int get_name_loc(const std::string &name);
   std::string get_pretty_name(const std::string &name);
+
+  int get_field_loc(const std::string &name);
+  std::string get_dynamic_member(const std::string &name);
   // --------------------------------------------------
 
 protected:
-  domaint *domain; // template generator is responsable for the domain object
+  domaint *domain; // template generator is responsible for the domain object
   domaint::valuet *result;
 
   // statistics
