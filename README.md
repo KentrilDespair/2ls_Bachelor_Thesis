@@ -2,6 +2,10 @@
 
 # Imprecise Invariant Identification for Abstract Domains
 
+Identification of template variables, which have imprecise values inside computed 
+invariant for supported abstract domains in 2LS framework.
+
+
 ## Edited Files
 * ssa\_analyzer.h
 * ssa\_analyzer.cpp
@@ -134,8 +138,8 @@ Summary for function _start
 ...
 ```
 
-About
-=====
+About 2LS
+=========
 
 2LS ("tools") is a verification tool for C programs. It is built upon the
 CPROVER framework ([cprover.org](http://www.cprover.org)), which
