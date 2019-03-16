@@ -208,8 +208,9 @@ void ssa_analyzert::operator()(
 
 
   // TODO ----------------------------------------------------
-  debug() << "------------------------------------\n"
-    <<       "Invariant Imprecision Identification\n"
+  debug() // << "------------------------------------\n"
+    << "\nInvariant Imprecision Identification\n"
+    << "------------------------------------\n"
     << "Variables:\n";
 
   // getting imprecise ssa variables' names
@@ -340,11 +341,11 @@ void ssa_analyzert::find_goto_instrs(
           static_cast<unsigned>(field_loc)
             )))->location->source_location.get_line() << "\n";
 
-      return; 
+      continue;
     }
     
     debug() << "Imprecise value of variable \"" << var_pretty
-      << "\" at the end of the loop, that starts on line "
+      << "\" at the end of the loop, that starts at line "
       << lh_node->location->source_location.get_line() << "\n";
   }
 }
