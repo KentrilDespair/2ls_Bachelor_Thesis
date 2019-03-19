@@ -8,14 +8,14 @@ have imprecise values inside computed invariant for supported abstract
 domains in 2LS framework.
 
 
-## Edited Files
-* ssa\_analyzer.h
-* ssa\_analyzer.cpp
-* domain.h
-* heap\_domain.h
-* heap\_domain.cpp
-* tpolyhedra\_domain.h
-* tpolyhedra\_domain.cpp
+%## Edited Files
+%* ssa\_analyzer.h
+%* ssa\_analyzer.cpp
+%* domain.h
+%* heap\_domain.h
+%* heap\_domain.cpp
+%* tpolyhedra\_domain.h
+%* tpolyhedra\_domain.cpp
 
 ## Code Examples
 
