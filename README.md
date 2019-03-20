@@ -1,6 +1,6 @@
 [![Build Status][build_img]][travis]
 
-# Imprecise Variable Identification 
+# Imprecision Invariant Identification 
 # for Abstract Domains in 2LS framework
 
 Identification and in source localization of template variables, which 
