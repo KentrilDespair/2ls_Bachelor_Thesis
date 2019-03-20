@@ -88,7 +88,7 @@ Invariant Imprecision Identification
 Variables:
 1: p#lb26
 ------------------------------------
-1: Imprecise value of variable "p" at the end of the loop, that starts at li    ne 15
+1: Imprecise value of variable "p" at the end of the loop, that starts at line 15
 
 Summary for function _start
 ...
