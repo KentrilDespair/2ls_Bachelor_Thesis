@@ -4,7 +4,7 @@
 # for Abstract Domains in 2LS framework
 
 Identification and in source localization of template variables, which 
-have imprecise values inside computed invariant for supported abstract
+have imprecise values inside computed loop invariants for supported abstract
 domains in 2LS framework.
 
 <!-- 
