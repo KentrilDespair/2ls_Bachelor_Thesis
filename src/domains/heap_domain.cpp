@@ -2030,23 +2030,23 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
   for (rowt row=0; row<templ.size(); row++)
   {
     // get template row expression
-    exprt tmpl_expr=templ[row].expr;
+    exprt row_expr=templ[row].expr;
 
     // get the actual value for this template row
-    const exprt row_expr=val[row].get_row_expr(tmpl_expr, false);
+    const exprt row_val=val[row].get_row_expr(row_expr, false);
     
     // row value is nondeterministic
-    if (row_expr.is_true()) 
+    if (row_val.is_true()) 
     {
       // Only template expressions that are of symbol type
-      if (tmpl_expr.id()!=ID_symbol)
+      if (row_expr.id()!=ID_symbol)
         continue;
 
       // the template row expression variable name
-      std::string expr_name=from_expr(domaint::ns, "", tmpl_expr);
+      std::string expr_name=from_expr(domaint::ns, "", row_expr);
 
       debug() << ssa_vars.size()+1 << ": " << expr_name << "\n";
-//        << "\tValue: " << from_expr(domaint::ns, "", row_expr) << "\n";
+//        << "\tValue: " << from_expr(domaint::ns, "", row_val) << "\n";
 
       ssa_vars.push_back(expr_name);
     }
