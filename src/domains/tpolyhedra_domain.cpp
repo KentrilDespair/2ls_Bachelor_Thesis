@@ -1285,8 +1285,14 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
   const templ_valuet &templ_val=static_cast<const templ_valuet &>(value);
   assert(templ_val.size()==templ.size());
 
-  // only first of both template rows for one variable is compared
+  // indicates the first template row of a template row pair
   bool first_row=true;
+  
+  // the first and the second template row values of a template row pair
+  row_valuet first_row_val, secnd_row_val;
+
+  // row variable name, got only from first row
+  std::string expr_name;
 
   // vector for saving ssa variable names
   std::vector<std::string> ssa_vars;
@@ -1299,23 +1305,74 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
     // only the "maximum" row of both rows is compared
     if (first_row)
     {
-      // getting the actual value of the template row
-      row_valuet row_val=get_row_value(row, templ_val);
+      // getting the actual value of the first template row
+      first_row_val=get_row_value(row, templ_val);
 
-      // is maximum row value = has unbounded value
-      if (row_val==get_max_row_value(row))
+      // get the template row expression variable name
+      expr_name=from_expr(domaint::ns, "", tmpl_expr);
+    }
+    else
+    {
+      // get second template row value
+      secnd_row_val=get_row_value(row, templ_val);
+
+      // pair is max and min -> unbounded value
+      if (first_row_val==get_max_row_value(row-1) &&
+          is_row_value_min(row, secnd_row_val))
       {
-        // get the template row expression variable name
-        std::string expr_name=from_expr(domaint::ns, "", tmpl_expr);
-
-        debug() << ssa_vars.size()+1 << ": " << expr_name << "\n";
-//          << "\tValue: " << row_val.get_value() << "\n";
-
+        debug() << ssa_vars.size()+1 << ": " << expr_name << '\n';
         ssa_vars.push_back(expr_name);
       }
     }
     first_row=!first_row;
   }
-
   return ssa_vars;
+}
+
+/*******************************************************************\
+
+ Function: tpolyhedra_domaint::is_row_value_min()
+
+   Inputs: Template row, row value to be evaluated
+
+  Outputs: True if is minimum otherwise false
+
+  Purpose: Evaluate whether a row value at row is a minimum value
+
+\*******************************************************************/
+
+bool tpolyhedra_domaint::is_row_value_min(
+  const rowt &row,
+  const row_valuet &row_val)
+{
+  assert(row>0);
+  const template_rowt &templ_row=templ[row];
+
+  if(templ_row.expr.type().id()==ID_signedbv)
+  {
+    mp_integer int_row_val;
+
+    // is true on conversion error
+    if (to_integer(row_val, int_row_val))
+      return false;
+
+    // the first row of the pair was unsigned -> minimum is 0
+    if (templ[row-1].expr.type().id()==ID_unsignedbv)
+      return int_row_val == 0;
+
+    return (-(int_row_val << 1) == to_signedbv_type(
+      templ_row.expr.type()).smallest()
+    );
+  }
+  if(templ_row.expr.type().id()==ID_unsignedbv)
+  {
+    return row_val==to_unsignedbv_type(templ_row.expr.type()).smallest_expr();
+  }
+  if(templ_row.expr.type().id()==ID_floatbv)
+  {
+    ieee_floatt min(to_floatbv_type(templ_row.expr.type()));
+    min.make_fltmin();
+    return row_val==min.to_expr();
+  }
+  assert(false); // type not supported
 }
