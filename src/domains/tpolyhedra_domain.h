@@ -151,6 +151,10 @@ public:
   // TODO --------------------------------------------------------
   virtual std::vector<std::string> identify_invariant_imprecision(
     const valuet &value);
+
+  bool is_row_value_min(
+    const rowt &row,
+    const row_valuet &row_val);
   // -------------------------------------------------------------
 
 protected:
