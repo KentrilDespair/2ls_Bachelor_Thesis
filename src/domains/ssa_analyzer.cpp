@@ -363,10 +363,13 @@ Function: ssa_analyzert::get_name_loc(const std::string &name)
 \*******************************************************************/
 int ssa_analyzert::get_name_loc(const std::string &name)
 {
-  if (name.find('#')==std::string::npos)
+  // find last occurnce of "#lb"
+  size_t idx=name.rfind("#lb");
+  if(idx==std::string::npos)
     return -1;
-  
-  std::string loc_str=name.substr(name.find_last_not_of("0123456789")+1);
+
+  //std::string loc_str=name.substr(name.find_last_not_of("0123456789")+1);
+  std::string loc_str=name.substr(idx+3);
   assert(!loc_str.empty());
   return std::stoi(loc_str);
 }
