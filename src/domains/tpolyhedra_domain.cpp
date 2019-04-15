@@ -6,11 +6,10 @@ Author: Peter Schrammel
 
 \*******************************************************************/
 
-// TODO
-//#ifdef DEBUG
+#ifdef DEBUG
 #include <iostream>
 #include <langapi/languages.h>
-//#endif
+#endif
 
 #include <util/find_symbols.h>
 #include <util/i2string.h>
@@ -23,8 +22,6 @@ Author: Peter Schrammel
 #define SYMB_BOUND_VAR "symb_bound#"
 
 #define ENABLE_HEURISTICS
-
-#define debug() (std::cerr)
 
 /*******************************************************************\
 
@@ -1291,7 +1288,6 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
   // the first and the second template row values of a template row pair
   row_valuet first_row_val, secnd_row_val;
 
-  // row variable name, got only from first row
   std::string expr_name;
 
   // vector for saving ssa variable names
@@ -1299,28 +1295,22 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
 
   for (rowt row=0; row<templ.size(); row++)
   {
-    // get template row expression
     exprt tmpl_expr=templ[row].expr;
 
     // only the "maximum" row of both rows is compared
     if (first_row)
     {
-      // getting the actual value of the first template row
       first_row_val=get_row_value(row, templ_val);
-
-      // get the template row expression variable name
       expr_name=from_expr(domaint::ns, "", tmpl_expr);
     }
     else
     {
-      // get second template row value
       secnd_row_val=get_row_value(row, templ_val);
 
       // pair is max and min -> unbounded value
       if (first_row_val==get_max_row_value(row-1) &&
           is_row_value_min(row, secnd_row_val))
       {
-        debug() << ssa_vars.size()+1 << ": " << expr_name << '\n';
         ssa_vars.push_back(expr_name);
       }
     }
