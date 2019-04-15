@@ -210,17 +210,16 @@ void ssa_analyzert::operator()(
   // TODO ----------------------------------------------------
   debug() // << "------------------------------------\n"
     << "\nInvariant Imprecision Identification\n"
-    << "------------------------------------\n"
-    << "Variables:\n";
+    << "------------------------------------\n";
 
   // getting imprecise ssa variables' names
   std::vector<std::string> ssa_vars=
     domain->identify_invariant_imprecision(*result);
 
-  debug() << "------------------------------------\n";
-
   // TODO narrow down later passed stuff if possible
   find_goto_instrs(SSA, ssa_vars);
+
+  debug() << "------------------------------------\n";
 
   // ---------------------------------------------------------
 
@@ -294,20 +293,19 @@ void ssa_analyzert::find_goto_instrs(
   local_SSAt &SSA, 
   std::vector<std::string> &ssa_vars)
 {
-  // name counter
-  unsigned nth_name=0;    // TODO subst the iterator with cntr?
+  // nth name counter
+  unsigned nth_name=0;
 
-  // getting each ssa variable name
-  for (auto it=ssa_vars.begin(); it!=ssa_vars.end(); it++)
+  for (auto &var : ssa_vars)
   {
     nth_name++;
     debug() << nth_name << ": ";
 
     // heap domain specific, dynamic objects
-    bool is_dynamic=((it->substr(0, DYN_PRFX_LEN-1))=="dynamic_object$");
+    bool is_dynamic=((var.substr(0, DYN_PRFX_LEN-1))=="dynamic_object$");
 
     // get location of SSA var
-    int loc=get_name_loc(*it);
+    int loc=get_name_loc(var);
     if (loc==-1)
     {
       debug() << "Input variable\n";
@@ -315,7 +313,7 @@ void ssa_analyzert::find_goto_instrs(
     }
 
     // get the pretty name of the imprecise ssa var
-    std::string var_pretty=get_pretty_name(*it);
+    std::string var_pretty=get_pretty_name(var);
 
     // get SSA node on that location - end of the loop for loop back var
     local_SSAt::nodest::iterator lb_node=SSA.find_node(
@@ -328,15 +326,15 @@ void ssa_analyzert::find_goto_instrs(
     if (is_dynamic)
     {
       // getting the object's allocation location
-      int field_loc=get_field_loc(*it);
+      int field_loc=get_field_loc(var);
       if (field_loc==-1)
       {
         debug() << "Allocation location not found\n";
         continue;
       }
 
-      debug() << "Imprecise value of \"" << get_dynamic_member(*it)
-        << "\" field of dynamic object \"" << *it << "\" allocated at line "
+      debug() << "Imprecise value of \"" << get_dynamic_member(var)
+        << "\" field of dynamic object \"" << var << "\" allocated at line "
         << (SSA.find_node(SSA.get_location(
           static_cast<unsigned>(field_loc)
             )))->location->source_location.get_line() << "\n";
