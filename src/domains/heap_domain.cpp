@@ -10,10 +10,6 @@ Author: Viktor Malik
 #include <algorithm>
 #include <ssa/address_canonizer.h>
 
-#include <iostream>
-
-#define debug() (std::cerr)
-
 /*******************************************************************\
 
 Function: heap_domaint::initialize
@@ -2016,7 +2012,6 @@ Function: heap_domaint::identify_invariant_imprecision
  Purpose: Identify imprecise template variables of invariant
 
 \*******************************************************************/
-
 std::vector<std::string> heap_domaint::identify_invariant_imprecision(
   const domaint::valuet &value)
 {
@@ -2029,10 +2024,7 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
  
   for (rowt row=0; row<templ.size(); row++)
   {
-    // get template row expression
     exprt row_expr=templ[row].expr;
-
-    // get the actual value for this template row
     const exprt row_val=val[row].get_row_expr(row_expr, false);
     
     // row value is nondeterministic
@@ -2045,7 +2037,7 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
       // the template row expression variable name
       std::string expr_name=from_expr(domaint::ns, "", row_expr);
 
-      debug() << ssa_vars.size()+1 << ": " << expr_name << "\n";
+//      debug() << ssa_vars.size()+1 << ": " << expr_name << "\n";
 //        << "\tValue: " << from_expr(domaint::ns, "", row_val) << "\n";
 
       ssa_vars.push_back(expr_name);
