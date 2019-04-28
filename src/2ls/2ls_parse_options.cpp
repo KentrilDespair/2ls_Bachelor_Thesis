@@ -369,6 +369,10 @@ void twols_parse_optionst::get_command_line_options(optionst &options)
     options.set_option("graphml-witness", cmdline.get_value("graphml-witness"));
   if(cmdline.isset("json-cex"))
     options.set_option("json-cex", cmdline.get_value("json-cex"));
+  // TODO ------------------------------------
+  if(cmdline.isset("show-imprecise-vars"))
+    options.set_option("show-imprecise-vars", true);
+  // -----------------------------------------
 }
 
 /*******************************************************************\
@@ -1747,6 +1751,7 @@ void twols_parse_optionst::help()
     " --round-to-plus-inf          IEEE floating point rounding mode\n"
     " --round-to-minus-inf         IEEE floating point rounding mode\n"
     " --round-to-zero              IEEE floating point rounding mode\n"
+    " --show-imprecise-vars        show imprecise variables inside invariant\n"
     "\n"
     "Program instrumentation options:\n"
     GOTO_CHECK_HELP
