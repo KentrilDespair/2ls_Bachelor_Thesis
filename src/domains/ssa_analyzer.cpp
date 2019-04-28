@@ -208,19 +208,20 @@ void ssa_analyzert::operator()(
 
 
   // TODO ----------------------------------------------------
-  debug() // << "------------------------------------\n"
-    << "\nInvariant Imprecision Identification\n"
-    << "------------------------------------\n";
+  if(template_generator.options.get_bool_option("show-imprecise-vars"))
+  {
+    debug() << "\nInvariant Imprecision Identification\n"
+      << "------------------------------------\n";
 
-  // getting imprecise ssa variables' names
-  std::vector<std::string> ssa_vars=
-    domain->identify_invariant_imprecision(*result);
+    // getting imprecise ssa variables' names
+    std::vector<std::string> ssa_vars=
+      domain->identify_invariant_imprecision(*result);
 
-  // TODO narrow down later passed stuff if possible
-  find_goto_instrs(SSA, ssa_vars);
+    // printing out imprecise variables and their real locations
+    find_goto_instrs(SSA, ssa_vars);
 
-  debug() << "------------------------------------\n";
-
+    debug() << "------------------------------------\n";
+  }
   // ---------------------------------------------------------
 
   delete s_solver;
@@ -308,7 +309,7 @@ void ssa_analyzert::find_goto_instrs(
     int loc=get_name_loc(var);
     if (loc==-1)
     {
-      debug() << "Input variable\n";
+      debug() << "Input variable: \"" << var << "\"\n";
       continue;
     }
 
