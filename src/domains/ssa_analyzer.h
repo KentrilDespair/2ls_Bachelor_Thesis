@@ -59,7 +59,7 @@ public:
   std::string get_pretty_name(const std::string &name);
 
   int get_field_loc(const std::string &name);
-  std::string get_dynamic_member(const std::string &name);
+  std::string get_dynamic_field(const std::string &name);
   // --------------------------------------------------
 
 protected:
