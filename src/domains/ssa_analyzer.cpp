@@ -302,50 +302,60 @@ void ssa_analyzert::find_goto_instrs(
     nth_name++;
     debug() << nth_name << ": ";
 
-    // heap domain specific, dynamic objects
-    bool is_dynamic=((var.substr(0, DYN_PRFX_LEN-1))=="dynamic_object$");
+    // heap domain specific, dynamic objects, starts with string
+    bool is_dynamic=((var.compare(0, DYN_PRFX_LEN-1, "dynamic_object$"))==0);
 
     // get location of SSA var
     int loc=get_name_loc(var);
-    if (loc==-1)
-    {
-      debug() << "Input variable: \"" << var << "\"\n";
-      continue;
-    }
 
     // get the pretty name of the imprecise ssa var
     std::string var_pretty=get_pretty_name(var);
 
-    // get SSA node on that location - end of the loop for loop back var
+    // location could not be parsed from the variable name
+    if (loc==-1)
+    {
+      debug() << "Input variable: \"";
+
+      if (is_dynamic)
+        debug() << var << "\"\n";
+      else
+        debug() << var_pretty << "\"\n";
+
+      continue;
+    }
+
+    // get SSA node on that location - end of the loop for loop-back var
     local_SSAt::nodest::iterator lb_node=SSA.find_node(
       SSA.get_location(static_cast<unsigned>(loc)));
 
-    // get start of the loop node (loophead node) for that node
+    // get start of the loop node (loop-head node) for that loop-back node
     local_SSAt::nodest::iterator lh_node=lb_node->loophead;
 
     // heap dynamic objects
     if (is_dynamic)
     {
-      // getting the object's allocation location
+      debug() << "Imprecise value of \"" << get_dynamic_field(var)
+        << "\" field of \"" << var << "\" allocated at line ";
+
+      // get the object's allocation location
       int field_loc=get_field_loc(var);
+
+      // location could not be parsed from its name
       if (field_loc==-1)
-      {
-        debug() << "Allocation location not found\n";
-        continue;
-      }
-
-      debug() << "Imprecise value of \"" << get_dynamic_member(var)
-        << "\" field of dynamic object \"" << var << "\" allocated at line "
-        << (SSA.find_node(SSA.get_location(
-          static_cast<unsigned>(field_loc)
-            )))->location->source_location.get_line() << "\n";
-
-      continue;
+        debug() << "<NOT FOUND>";
+      else
+        debug() << (SSA.find_node(
+                      SSA.get_location(static_cast<unsigned>(field_loc))
+                   ))->location->source_location.get_line();
     }
-    
-    debug() << "Imprecise value of variable \"" << var_pretty
-      << "\" at the end of the loop, that starts at line "
-      << lh_node->location->source_location.get_line() << "\n";
+    // static variables
+    else 
+    {
+      debug() << "Imprecise value of variable \"" << var_pretty << '"';
+    }
+
+    debug() << " at the end of the loop, that starts at line "
+      << lh_node->location->source_location.get_line() << '\n';
   }
 }
 
@@ -418,7 +428,7 @@ int ssa_analyzert::get_field_loc(const std::string &name)
 
 /*******************************************************************\
 
-Function: ssa_analyzert::get_dynamic_member(const std::string &name)
+Function: ssa_analyzert::get_dynamic_field(const std::string &name)
 
   Inputs: SSA loop back dynamic object name.
 
@@ -427,7 +437,7 @@ Function: ssa_analyzert::get_dynamic_member(const std::string &name)
  Purpose: Extract the member field from the dynamic object name.
 
 \*******************************************************************/
-std::string ssa_analyzert::get_dynamic_member(const std::string &name)
+std::string ssa_analyzert::get_dynamic_field(const std::string &name)
 {
   // only dynamic objects: expecting dollar sign at pos 14
   assert(name[DYN_PRFX_LEN-2]=='$');
