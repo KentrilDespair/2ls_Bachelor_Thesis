@@ -314,13 +314,7 @@ void ssa_analyzert::find_goto_instrs(
     // location could not be parsed from the variable name
     if (loc==-1)
     {
-      debug() << "Input variable: \"";
-
-      if (is_dynamic)
-        debug() << var << "\"\n";
-      else
-        debug() << var_pretty << "\"\n";
-
+      debug() << "Input variable: \"" << var_pretty << "\"\n";
       continue;
     }
 
@@ -335,7 +329,7 @@ void ssa_analyzert::find_goto_instrs(
     if (is_dynamic)
     {
       debug() << "Imprecise value of \"" << get_dynamic_field(var)
-        << "\" field of \"" << var << "\" allocated at line ";
+        << "\" field of \"" << var_pretty << "\" allocated at line ";
 
       // get the object's allocation location
       int field_loc=get_field_loc(var);
