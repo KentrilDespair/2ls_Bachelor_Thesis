@@ -47,7 +47,10 @@ Latest changes:
 ### Options: --intervals --inline --show-imprecise-vars 
 ```
 ...
-forward invariant: ($guard#19 && $guard#ls23 ==> x#lb23 <= 2147483647) && ($guard#19 && $guard#ls23 ==> -((signed __CPROVER_bitvector[33])x#lb23) <= 2147483648) && ($guard#19 && $guard#ls23 ==> y#lb23 <= 4294967295u) && ($guard#19 && $guard#ls23 ==> -((signed __CPROVER_bitvector[33])y#lb23) <= 0)
+forward invariant: ($guard#19 && $guard#ls23 ==> x#lb23 <= 2147483647) && \
+($guard#19 && $guard#ls23 ==> -((signed __CPROVER_bitvector[33])x#lb23) <= 2147483648) && \
+($guard#19 && $guard#ls23 ==> y#lb23 <= 4294967295u) && \
+($guard#19 && $guard#ls23 ==> -((signed __CPROVER_bitvector[33])y#lb23) <= 0)
 backward precondition: not computed
 backward postcondition: not computed
 backward transformer: not computed
@@ -121,7 +124,27 @@ Checking properties of _start
 ...
 Summary for function _start
 ...
-forward invariant: ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL) && ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL && head#lb50 == &dynamic_object$27#0 || __CPROVER_deallocated#lb50 == NULL && head#lb50 == &dynamic_object$27#1 || __CPROVER_deallocated#lb50 == NULL && head#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL && elem#lb50 == &dynamic_object$27#0 || __CPROVER_deallocated#lb50 == NULL && elem#lb50 == &dynamic_object$27#1 || __CPROVER_deallocated#lb50 == NULL && elem#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> __CPROVER_malloc_object#lb50 == NULL || __CPROVER_malloc_object#lb50 == (const void *)&dynamic_object$27#0 || __CPROVER_malloc_object#lb50 == (const void *)&dynamic_object$27#1 || __CPROVER_malloc_object#lb50 == (const void *)&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> __CPROVER_memory_leak#lb50 == NULL || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#0 || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#1 || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> head#lb50 == &dynamic_object$27#0 || head#lb50 == &dynamic_object$27#1 || head#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> elem#lb50 == &dynamic_object$27#0 || elem#lb50 == &dynamic_object$27#1 || elem#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#53 && $guard#ls55 ==> TRUE)
+forward invariant: ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL) && \
+($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL && head#lb50 == \
+&dynamic_object$27#0 || __CPROVER_deallocated#lb50 == NULL && head#lb50 == \
+&dynamic_object$27#1 || __CPROVER_deallocated#lb50 == NULL && head#lb50 == \
+&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL \
+&& elem#lb50 == &dynamic_object$27#0 || __CPROVER_deallocated#lb50 == NULL && elem#lb50 \
+== &dynamic_object$27#1 || __CPROVER_deallocated#lb50 == NULL && elem#lb50 == \
+&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 \
+==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> \
+__CPROVER_malloc_object#lb50 == NULL || __CPROVER_malloc_object#lb50 == (const void \
+*)&dynamic_object$27#0 || __CPROVER_malloc_object#lb50 == (const void \
+*)&dynamic_object$27#1 || __CPROVER_malloc_object#lb50 == (const void \
+*)&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> __CPROVER_memory_leak#lb50 == \
+NULL || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#0 || \
+__CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#1 || \
+__CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#2) && ($guard#19 && \
+$guard#ls50 ==> head#lb50 == &dynamic_object$27#0 || head#lb50 == &dynamic_object$27#1 || \
+head#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> elem#lb50 == \
+&dynamic_object$27#0 || elem#lb50 == &dynamic_object$27#1 || elem#lb50 == \
+&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 \
+==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#53 && $guard#ls55 ==> TRUE) \
 ...
 Invariant Imprecise Variables:
 1: Imprecise value of "next" field of "dynamic_object$27" allocated at line 9; at the end of the loop; starting at line 8
