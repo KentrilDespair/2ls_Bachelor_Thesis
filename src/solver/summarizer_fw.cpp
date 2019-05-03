@@ -191,6 +191,7 @@ void summarizer_fwt::do_summary(
   // TODO -------------------------------------------------------
   if (options.get_bool_option("show-imprecise-vars"))
   {
+    summary.opt_imprecise=true;
     summary.imprecise_vars_summary=analyzer.get_imprecise_vars();
   }
   // ------------------------------------------------------------

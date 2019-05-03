@@ -79,8 +79,9 @@ void summaryt::output(std::ostream &out, const namespacet &ns) const
   out << "terminates: " << threeval2string(terminates) << std::endl;
 
   // TODO output imprecise variables identified inside forward invariant
-  out_invariant_imprecise_vars(out);
-  // -------------------------------
+  if (opt_imprecise)
+    out_invariant_imprecise_vars(out);
+  // ---------------------------------
 }
 
 /*******************************************************************\

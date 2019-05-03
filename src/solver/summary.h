@@ -48,7 +48,8 @@ class summaryt
     aux_precondition(nil_exprt()),
     termination_argument(nil_exprt()),
     terminates(UNKNOWN),
-    mark_recompute(false) {}
+    mark_recompute(false),
+    opt_imprecise(false) {}
 
   var_listt params;
   var_sett globals_in, globals_out;
@@ -72,6 +73,8 @@ class summaryt
 
   // TODO ---------------------------------------------------
   imprecise_varst imprecise_vars_summary;
+
+  bool opt_imprecise;   // whether the imprecise vars header should be output
 
   void out_invariant_imprecise_vars(std::ostream &out) const;
   // --------------------------------------------------------
