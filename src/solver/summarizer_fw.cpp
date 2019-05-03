@@ -187,6 +187,13 @@ void summarizer_fwt::do_summary(
 
   solver_instances+=analyzer.get_number_of_solver_instances();
   solver_calls+=analyzer.get_number_of_solver_calls();
+
+  // TODO -------------------------------------------------------
+  if (options.get_bool_option("show-imprecise-vars"))
+  {
+    summary.imprecise_vars_summary=analyzer.get_imprecise_vars();
+  }
+  // ------------------------------------------------------------
 }
 
 /*******************************************************************\
