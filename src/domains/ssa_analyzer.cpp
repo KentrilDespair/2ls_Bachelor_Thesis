@@ -6,9 +6,6 @@ Author: Peter Schrammel
 
 \*******************************************************************/
 
-// TODO
-#include <iostream>
-
 #include <solvers/sat/satcheck.h>
 #include <solvers/flattening/bv_pointers.h>
 #include <util/find_symbols.h>
@@ -43,10 +40,7 @@ Author: Peter Schrammel
   *static_cast<tpolyhedra_domaint *>(domain), solver, SSA, SSA.ns)
 #endif
 
-// TODO
-#define debug() (std::cerr)
-
-// dynamic object prefix string length
+// TODO dynamic object prefix string length
 #define DYN_PRFX_LEN 16
 
 /*******************************************************************\
@@ -210,17 +204,12 @@ void ssa_analyzert::operator()(
   // TODO ----------------------------------------------------
   if(template_generator.options.get_bool_option("show-imprecise-vars"))
   {
-    debug() << "\nInvariant Imprecision Identification\n"
-      << "------------------------------------\n";
-
     // getting imprecise ssa variables' names
     std::vector<std::string> ssa_vars=
       domain->identify_invariant_imprecision(*result);
 
     // printing out imprecise variables and their real locations
     find_goto_instrs(SSA, ssa_vars);
-
-    debug() << "------------------------------------\n";
   }
   // ---------------------------------------------------------
 
@@ -294,14 +283,11 @@ void ssa_analyzert::find_goto_instrs(
   local_SSAt &SSA, 
   std::vector<std::string> &ssa_vars)
 {
-  // nth name counter
-  unsigned nth_name=0;
+  vars_summary.resize(ssa_vars.size());
+  imprecise_varst::iterator summary_it=vars_summary.begin();
 
   for (auto &var : ssa_vars)
   {
-    nth_name++;
-    debug() << nth_name << ": ";
-
     // heap domain specific, dynamic objects, starts with string
     bool is_dynamic=((var.compare(0, DYN_PRFX_LEN-1, "dynamic_object$"))==0);
 
@@ -309,12 +295,14 @@ void ssa_analyzert::find_goto_instrs(
     int loc=get_name_loc(var);
 
     // get the pretty name of the imprecise ssa var
-    std::string var_pretty=get_pretty_name(var);
+    summary_it->pretty_name=get_pretty_name(var);
+    // std::string var_pretty=get_pretty_name(var);
 
     // location could not be parsed from the variable name
     if (loc==-1)
     {
-      debug() << "Input variable: \"" << var_pretty << "\"\n";
+      // summary_it->loophead_loc=-1;
+      // debug() << "Input variable: \"" << var_pretty << "\"\n"; TODO
       continue;
     }
 
@@ -328,28 +316,34 @@ void ssa_analyzert::find_goto_instrs(
     // heap dynamic objects
     if (is_dynamic)
     {
-      debug() << "Imprecise value of \"" << get_dynamic_field(var)
-        << "\" field of \"" << var_pretty << "\" allocated at line ";
+      summary_it->dyn_mem_field=get_dynamic_field(var);
+
+      // debug() << "Imprecise value of \"" << get_dynamic_field(var) TODO
+      //  << "\" field of \"" << var_pretty << "\" allocated at line ";
 
       // get the object's allocation location
       int field_loc=get_field_loc(var);
 
       // location could not be parsed from its name
       if (field_loc==-1)
-        debug() << "<NOT FOUND>";
+        summary_it->dyn_alloc_loc="<NOT FOUND>"; //  debug() << "<NOT FOUND>"; TODO
       else
-        debug() << (SSA.find_node(
-                      SSA.get_location(static_cast<unsigned>(field_loc))
-                   ))->location->source_location.get_line();
+      {
+        summary_it->dyn_alloc_loc=(
+          SSA.find_node(
+            SSA.get_location(static_cast<unsigned>(field_loc))
+          ))->location->source_location.get_line();
+      }
     }
     // static variables
     else 
     {
-      debug() << "Imprecise value of variable \"" << var_pretty << '"';
+      // debug() << "Imprecise value of variable \"" << var_pretty << '"';
     }
-
-    debug() << " at the end of the loop, that starts at line "
-      << lh_node->location->source_location.get_line() << '\n';
+    summary_it->loophead_loc=lh_node->location->source_location.get_line();
+    // debug() << " at the end of the loop, that starts at line "
+    //  << lh_node->location->source_location.get_line() << '\n';
+    summary_it++;
   }
 }
 
