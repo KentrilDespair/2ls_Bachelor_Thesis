@@ -7,6 +7,16 @@ Identification and in source localization of template variables, which
 have imprecise values inside computed loop invariants for supported abstract
 domains in 2LS framework.
 
+Currently implemented in domains:
+* abstract interval domain
+* heap domain
+* heap template polyhedra domain
+
+Latest changes:
+* updated to version 0.7.1
+* option "--show-imprecise-vars"
+* output now part of function summary (see examples below)
+
 <!-- 
 ## Edited Files
 * ssa\_analyzer.h
@@ -20,37 +30,35 @@ domains in 2LS framework.
 
 ## Code Examples
 
-### 1. Template Polyhedra domain
+### 1. Abstract Interval Domain
 ```cpp
-1  void main()
-2  {
-3    int x = 0;
-4    unsigned y = 0;
-5
-6    while (x || y < 10)
-7    {
-8      --x;
-9      ++y;
-10     x = y - x;
-11   }
-12 }
+1  void main() {
+2    int x = 0;
+3    unsigned y = 0;
+4
+5    while (x || y < 10) {
+6      --x;
+7      ++y;
+8      x = -y - x;
+9    }
+10 }
 ```
 
-### $ ./2ls main.c --intervals --inline
+### Options: --intervals --inline --show-imprecise-vars 
 ```
 ...
-Computing summary
+forward invariant: ($guard#19 && $guard#ls23 ==> x#lb23 <= 2147483647) && ($guard#19 && $guard#ls23 ==> -((signed __CPROVER_bitvector[33])x#lb23) <= 2147483648) && ($guard#19 && $guard#ls23 ==> y#lb23 <= 4294967295u) && ($guard#19 && $guard#ls23 ==> -((signed __CPROVER_bitvector[33])y#lb23) <= 0)
+backward precondition: not computed
+backward postcondition: not computed
+backward transformer: not computed
+backward invariant: not computed
+termination argument: not computed
+terminates: unknown
+Invariant Imprecise Variables:
+1: Imprecise value of variable "x" at the end of the loop; starting at line 5
+2: Imprecise value of variable "y" at the end of the loop; starting at line 5
 
-Invariant Imprecision Identification
-------------------------------------
-Variables:
-1: x#lb23
-2: y#lb23
-------------------------------------
-1: Imprecise value of variable "x" at the end of the loop, that starts at line 6
-2: Imprecise value of variable "y" at the end of the loop, that starts at line 6
-
-Summary for function _start
+Checking properties of _start
 ...
 ```
 
@@ -61,36 +69,30 @@ Summary for function _start
 2    struct elem *next;
 3  } elem_t;
 4 
-5  void main()
-6  {
-7    elem_t *head;
-8    elem_t e1, e2, e3;
-9    
-10   head = &e1;
-11   e1.next = &e2;
-12   e2.next = &e3;
-13   
-14   elem_t *p = head;
-15   while (p)
-16   { 
-17     p = p->next;
-18   } 
-19 }
+5  void main() {
+6    elem_t *head, e1, e2, e3;
+7    
+8    head = &e1;
+9    e1.next = &e2;
+10   e2.next = &e3;
+11   
+12   elem_t *p = head;
+13   while (p)
+14     p = p->next;
+15 }
 ```
 
-### $ ./2ls main.c --heap --inline
+#### Options: --heap --inline --show-imprecise-vars
 ```
 ...
-Computing summary
- 
-Invariant Imprecision Identification
-------------------------------------
-Variables:
-1: p#lb26
-------------------------------------
-1: Imprecise value of variable "p" at the end of the loop, that starts at line 15
-
 Summary for function _start
+... 
+forward invariant: $guard#24 && $guard#ls26 ==> TRUE
+...
+Invariant Imprecise Variables:
+1: Imprecise value of variable "p" at the end of the loop; starting at line 13
+
+Checking properties of _start
 ...
 ```
 
@@ -100,44 +102,34 @@ Summary for function _start
 2    struct elem *next;
 3  } *elem_t;
 4 
-5  void main()
-6  {
-7    elem_t head, elem;
-8 
-9    for (unsigned i = 0; i < 2; i++)
-10   {
-11     elem = (elem_t) malloc(sizeof(struct elem));
-12     elem->next = head;
-13     head = elem; 
-14   } 
-15   
-16   elem = head;
-17   while (elem)
-18   {
-19     elem = elem->next;
-20   } 
-21 }
+5  void main() {
+6    elem_t head, elem;
+7 
+8    for (unsigned i = 0; i < 2; i++) {
+9      elem = (elem_t) malloc(sizeof(struct elem));
+10     elem->next = head;
+11     head = elem; 
+12   }
+13   elem = head;
+14   while (elem)
+15     elem = elem->next;
+16 }
 ```
 
-### $ ./2ls main.c --heap --inline
+#### Options: --heap --inline --show-imprecise-vars
 ```
 ...
-Computing summary
-
-Invariant Imprecision Identification
-------------------------------------
-Variables:
-1: dynamic_object$27#2.next#lb50
-2: dynamic_object$27#1.next#lb50
-3: dynamic_object$27#0.next#lb50
-4: elem#lb55
-------------------------------------
-1: Imprecise value of "next" field of dynamic object "dynamic_object$27#2.next#lb50" allocated at line 11 
-2: Imprecise value of "next" field of dynamic object "dynamic_object$27#1.next#lb50" allocated at line 11 
-3: Imprecise value of "next" field of dynamic object "dynamic_object$27#0.next#lb50" allocated at line 11 
-4: Imprecise value of variable "elem" at the end of the loop, that starts at line 17 
-
 Summary for function _start
+...
+forward invariant: ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL) && ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL && head#lb50 == &dynamic_object$27#0 || __CPROVER_deallocated#lb50 == NULL && head#lb50 == &dynamic_object$27#1 || __CPROVER_deallocated#lb50 == NULL && head#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> __CPROVER_deallocated#lb50 == NULL && elem#lb50 == &dynamic_object$27#0 || __CPROVER_deallocated#lb50 == NULL && elem#lb50 == &dynamic_object$27#1 || __CPROVER_deallocated#lb50 == NULL && elem#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> __CPROVER_malloc_object#lb50 == NULL || __CPROVER_malloc_object#lb50 == (const void *)&dynamic_object$27#0 || __CPROVER_malloc_object#lb50 == (const void *)&dynamic_object$27#1 || __CPROVER_malloc_object#lb50 == (const void *)&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> __CPROVER_memory_leak#lb50 == NULL || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#0 || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#1 || __CPROVER_memory_leak#lb50 == (const void *)&dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> head#lb50 == &dynamic_object$27#0 || head#lb50 == &dynamic_object$27#1 || head#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> elem#lb50 == &dynamic_object$27#0 || elem#lb50 == &dynamic_object$27#1 || elem#lb50 == &dynamic_object$27#2) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#19 && $guard#ls50 ==> TRUE) && ($guard#53 && $guard#ls55 ==> TRUE)
+...
+Invariant Imprecise Variables:
+1: Imprecise value of "next" field of "dynamic_object$27" allocated at line 9; at the end of the loop; starting at line 8
+2: Imprecise value of "next" field of "dynamic_object$27" allocated at line 9; at the end of the loop; starting at line 8
+3: Imprecise value of "next" field of "dynamic_object$27" allocated at line 9; at the end of the loop; starting at line 8
+4: Imprecise value of variable "elem" at the end of the loop; starting at line 14
+
+Checking properties of _start
 ...
 ```
 
