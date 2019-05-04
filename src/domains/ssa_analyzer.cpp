@@ -40,8 +40,8 @@ Author: Peter Schrammel
   *static_cast<tpolyhedra_domaint *>(domain), solver, SSA, SSA.ns)
 #endif
 
-// TODO dynamic object prefix string length
-#define DYN_PRFX_LEN 16
+// TODO prefix "dynamic object" string length
+#define DYN_PRFX_LEN 15
 
 /*******************************************************************\
 
@@ -289,7 +289,7 @@ void ssa_analyzert::find_goto_instrs(
   for (auto &var : ssa_vars)
   {
     // heap domain specific, dynamic objects, starts with string
-    bool is_dynamic=((var.compare(0, DYN_PRFX_LEN-1, "dynamic_object$"))==0);
+    bool is_dynamic=((var.compare(0, DYN_PRFX_LEN, "dynamic_object$"))==0);
 
     // get location of SSA var
     int loc=get_name_loc(var);
@@ -428,7 +428,8 @@ Function: ssa_analyzert::get_dynamic_field(const std::string &name)
 std::string ssa_analyzert::get_dynamic_field(const std::string &name)
 {
   // only dynamic objects: expecting dollar sign at pos 14
-  assert(name[DYN_PRFX_LEN-2]=='$');
+  // TODO remove after, NO FAULT
+  assert(name[DYN_PRFX_LEN-1]=='$');
 
   std::string not_found ("<NO MEMBER>");
 
