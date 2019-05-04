@@ -210,14 +210,14 @@ Function: summaryt::out_invariant_imprecise_vars
 \*******************************************************************/
 void summaryt::out_invariant_imprecise_vars(std::ostream &out) const
 {
-  out << "Invariant Imprecise Variables:" << std::endl;
+  out << "invariant imprecise variables:" << std::endl;
 
   // counter of variables
   unsigned nth_var=1;
 
   for (auto &var : imprecise_vars_summary)
   {
-    out << nth_var << ':';
+    out << ' ' << nth_var << ':';
     nth_var++;
 
     // does not have a location -> input variable
