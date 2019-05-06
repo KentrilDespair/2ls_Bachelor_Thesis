@@ -288,23 +288,23 @@ void ssa_analyzert::find_goto_instrs(
 
   for (auto &var : ssa_vars)
   {
+    // if verbosity - print loop-back names too TODO
+
     // heap domain specific, dynamic objects, starts with string
     bool is_dynamic=((var.compare(0, DYN_PRFX_LEN, "dynamic_object$"))==0);
+
+    // get the pretty name of the imprecise ssa var
+    if (is_dynamic)
+      summary_it->pretty_name=remove_loopback(var);
+    else
+      summary_it->pretty_name=get_pretty_name(var);
 
     // get location of SSA var
     int loc=get_name_loc(var);
 
-    // get the pretty name of the imprecise ssa var
-    summary_it->pretty_name=get_pretty_name(var);
-    // std::string var_pretty=get_pretty_name(var);
-
     // location could not be parsed from the variable name
     if (loc==-1)
-    {
-      // summary_it->loophead_loc=-1;
-      // debug() << "Input variable: \"" << var_pretty << "\"\n"; TODO
       continue;
-    }
 
     // get SSA node on that location - end of the loop for loop-back var
     local_SSAt::nodest::iterator lb_node=SSA.find_node(
@@ -316,33 +316,27 @@ void ssa_analyzert::find_goto_instrs(
     // heap dynamic objects
     if (is_dynamic)
     {
+      // adding name of the dynamic memory field
       summary_it->dyn_mem_field=get_dynamic_field(var);
 
-      // debug() << "Imprecise value of \"" << get_dynamic_field(var) TODO
-      //  << "\" field of \"" << var_pretty << "\" allocated at line ";
-
-      // get the object's allocation location
-      int field_loc=get_field_loc(var);
+      // get the object's allocation site location
+      int site_loc=get_alloc_site_loc(var);
 
       // location could not be parsed from its name
-      if (field_loc==-1)
-        summary_it->dyn_alloc_loc="<NOT FOUND>"; //  debug() << "<NOT FOUND>"; TODO
+      if (site_loc==-1)
+        summary_it->dyn_alloc_loc="<NOT FOUND>";
       else
       {
         summary_it->dyn_alloc_loc=(
           SSA.find_node(
-            SSA.get_location(static_cast<unsigned>(field_loc))
+            SSA.get_location(static_cast<unsigned>(site_loc))
           ))->location->source_location.get_line();
       }
     }
-    // static variables
-    else 
-    {
-      // debug() << "Imprecise value of variable \"" << var_pretty << '"';
-    }
+
+    // adding location of the loop-head node
     summary_it->loophead_loc=lh_node->location->source_location.get_line();
-    // debug() << " at the end of the loop, that starts at line "
-    //  << lh_node->location->source_location.get_line() << '\n';
+
     summary_it++;
   }
 }
@@ -395,16 +389,39 @@ std::string ssa_analyzert::get_pretty_name(const std::string &name)
 
 /*******************************************************************\
 
-Function: ssa_analyzert::get_field_loc(const std::string &name)
+Function: ssa_analyzert::remove_loopback(const std::string &name)
+
+  Inputs: SSA loop back variable name.
+
+ Outputs: SSA variable name without the last occurence "#lb" string.
+
+ Purpose: Remove the after "#lb" part in the name.
+
+\*******************************************************************/
+std::string ssa_analyzert::remove_loopback(const std::string &name)
+{
+  std::string pretty(name);
+
+  // find last occurnce of "#lb"
+  size_t idx=name.rfind("#lb");
+  if(idx!=std::string::npos)
+    pretty=name.substr(0, idx);
+
+  return pretty;
+}
+
+/*******************************************************************\
+
+Function: ssa_analyzert::get_alloc_site_loc(const std::string &name)
 
   Inputs: SSA loop back dynamic variable name.
 
- Outputs: Location of the field in the local SSA.
+ Outputs: Location of the allocation site in the local SSA.
 
- Purpose: Extract the field location from its SSA name.
+ Purpose: Extract the allocation site location from its SSA name.
 
 \*******************************************************************/
-int ssa_analyzert::get_field_loc(const std::string &name)
+int ssa_analyzert::get_alloc_site_loc(const std::string &name)
 {
   size_t field_pos=name.find_last_of('$');
   if (field_pos==std::string::npos)
