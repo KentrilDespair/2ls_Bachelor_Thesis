@@ -217,6 +217,10 @@ void summaryt::out_invariant_imprecise_vars(std::ostream &out) const
 
   for (auto &var : imprecise_vars_summary)
   {
+    // has no name, no need to print
+    if (var.pretty_name.empty())
+      continue;
+
     out << ' ' << nth_var << ':';
     nth_var++;
 

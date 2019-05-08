@@ -10,9 +10,6 @@ Author: Viktor Malik
 #include <algorithm>
 #include <ssa/address_canonizer.h>
 
-// prefix "__CPROVER_" length
-#define CPROVER_PRFX_LEN 10
-
 /*******************************************************************\
 
 Function: heap_domaint::initialize
@@ -2040,10 +2037,8 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
 
       // the template row expression variable name
       std::string expr_name=from_expr(domaint::ns, "", row_expr);
-    
-      // valid names do not start with "__CPROVER_" prefix
-      if (expr_name.compare(0, CPROVER_PRFX_LEN, "__CPROVER_") != 0)
-        ssa_vars.push_back(expr_name);
+
+      ssa_vars.push_back(expr_name);
     }
   }
 

@@ -1293,7 +1293,7 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
   // vector for saving ssa variable names
   std::vector<std::string> ssa_vars;
 
-  for (rowt row=0; row<templ.size(); row++)
+  for (rowt row=0; row<templ.size(); ++row)
   {
     exprt tmpl_expr=templ[row].expr;
 

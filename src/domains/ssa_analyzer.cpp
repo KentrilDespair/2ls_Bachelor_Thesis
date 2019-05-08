@@ -43,6 +43,9 @@ Author: Peter Schrammel
 // TODO prefix "dynamic object" string length
 #define DYN_PRFX_LEN 15
 
+// prefix "__CPROVER_" length
+#define CPROVER_PRFX_LEN 10
+
 /*******************************************************************\
 
 Function: ssa_analyzert::operator()
@@ -283,12 +286,17 @@ void ssa_analyzert::find_goto_instrs(
   local_SSAt &SSA, 
   std::vector<std::string> &ssa_vars)
 {
+  // resize the summary to the number of the variables
   vars_summary.resize(ssa_vars.size());
   imprecise_varst::iterator summary_it=vars_summary.begin();
 
   for (auto &var : ssa_vars)
   {
     // if verbosity - print loop-back names too TODO
+
+    // valid names do not start with "__CPROVER_" prefix
+    if (var.compare(0, CPROVER_PRFX_LEN, "__CPROVER_")==0)
+      continue;
 
     // heap domain specific, dynamic objects, starts with string
     bool is_dynamic=((var.compare(0, DYN_PRFX_LEN, "dynamic_object$"))==0);
@@ -299,18 +307,18 @@ void ssa_analyzert::find_goto_instrs(
     else
       summary_it->pretty_name=get_pretty_name(var);
 
-    // get location of SSA var
+    // get location of the SSA var
     int loc=get_name_loc(var);
 
     // location could not be parsed from the variable name
     if (loc==-1)
       continue;
 
-    // get SSA node on that location - end of the loop for loop-back var
+    // get SSA node of at "loc" - end of the loop for loop-back var
     local_SSAt::nodest::iterator lb_node=SSA.find_node(
       SSA.get_location(static_cast<unsigned>(loc)));
 
-    // get start of the loop node (loop-head node) for that loop-back node
+    // get loop-head node of that loop-back node
     local_SSAt::nodest::iterator lh_node=lb_node->loophead;
 
     // heap dynamic objects
@@ -333,7 +341,6 @@ void ssa_analyzert::find_goto_instrs(
           ))->location->source_location.get_line();
       }
     }
-
     // adding location of the loop-head node
     summary_it->loophead_loc=lh_node->location->source_location.get_line();
 
