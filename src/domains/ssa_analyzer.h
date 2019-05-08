@@ -60,8 +60,8 @@ public:
 
   int get_name_loc(const std::string &name);
   std::string get_pretty_name(const std::string &name);
-  std::string remove_loopback(const std::string &name);
 
+  std::string get_dynobj_name(const std::string &name);
   std::string get_dynamic_field(const std::string &name);
   int get_alloc_site_loc(const std::string &name);
 

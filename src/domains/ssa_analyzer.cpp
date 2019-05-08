@@ -40,7 +40,7 @@ Author: Peter Schrammel
   *static_cast<tpolyhedra_domaint *>(domain), solver, SSA, SSA.ns)
 #endif
 
-// TODO prefix "dynamic object" string length
+// TODO prefix "dynamic_object$" string length
 #define DYN_PRFX_LEN 15
 
 // prefix "__CPROVER_" length
@@ -303,7 +303,7 @@ void ssa_analyzert::find_goto_instrs(
 
     // get the pretty name of the imprecise ssa var
     if (is_dynamic)
-      summary_it->pretty_name=remove_loopback(var);
+      summary_it->pretty_name=get_dynobj_name(var);
     else
       summary_it->pretty_name=get_pretty_name(var);
 
@@ -366,7 +366,6 @@ int ssa_analyzert::get_name_loc(const std::string &name)
   if(idx==std::string::npos)
     return -1;
 
-  //std::string loc_str=name.substr(name.find_last_not_of("0123456789")+1);
   std::string loc_str=name.substr(idx+3);
   assert(!loc_str.empty());
   return std::stoi(loc_str);
@@ -376,7 +375,7 @@ int ssa_analyzert::get_name_loc(const std::string &name)
 
 Function: ssa_analyzert::get_pretty_name(const std::string &name)
 
-  Inputs: SSA loop back variable name.
+  Inputs: SSA loop-back variable name.
 
  Outputs: Pretty name of the SSA variable (only the part before '#').
 
@@ -385,34 +384,41 @@ Function: ssa_analyzert::get_pretty_name(const std::string &name)
 \*******************************************************************/
 std::string ssa_analyzert::get_pretty_name(const std::string &name)
 {
-  std::string pretty(name);
+  std::string pretty;
   size_t idx=name.find('#');
 
-  if(idx!=std::string::npos)
-    pretty=name.substr(0, idx);
-  
+  // is already the 'pretty' variable name
+  if(idx==std::string::npos)
+    return name;
+
+  pretty=name.substr(0, idx);
   return pretty;
 }
 
 /*******************************************************************\
 
-Function: ssa_analyzert::remove_loopback(const std::string &name)
+Function: ssa_analyzert::get_dynobj_name(const std::string &name)
 
-  Inputs: SSA loop back variable name.
+  Inputs: SSA loop-back Dynamic object name
 
- Outputs: SSA variable name without the last occurence "#lb" string.
+ Outputs: SSA dynamic object name without its field and anything after
 
- Purpose: Remove the after "#lb" part in the name.
+ Purpose: Remove its field, loop-back part and anything after in the name.
 
 \*******************************************************************/
-std::string ssa_analyzert::remove_loopback(const std::string &name)
+std::string ssa_analyzert::get_dynobj_name(const std::string &name)
 {
-  std::string pretty(name);
+  std::string pretty;
+  size_t idx;
 
-  // find last occurnce of "#lb"
-  size_t idx=name.rfind("#lb");
-  if(idx!=std::string::npos)
+  // first try to remove anything after field (field included)
+  if ((idx=name.find('.', DYN_PRFX_LEN))!=std::string::npos)
     pretty=name.substr(0, idx);
+  // then remove anything after the start of loop-back str
+  else if ((idx=name.rfind("#lb"))!=std::string::npos)
+    pretty=name.substr(0, idx);
+  else
+    return name;
 
   return pretty;
 }
@@ -455,16 +461,20 @@ std::string ssa_analyzert::get_dynamic_field(const std::string &name)
   // TODO remove after, NO FAULT
   assert(name[DYN_PRFX_LEN-1]=='$');
 
-  std::string not_found ("<NO MEMBER>");
+  std::string not_found("<NO MEMBER>");
 
-  size_t dot_pos=name.find_last_of('.');
-  size_t hash_pos=name.find_last_of('#');
-  if (dot_pos==std::string::npos || hash_pos==std::string::npos)
-    return not_found;
+  // "dynamic_object$N.____#"
+  size_t dot_pos=name.find('.', DYN_PRFX_LEN);
+  if (dot_pos!=std::string::npos)
+  {
+    size_t hash_pos=name.find('#', dot_pos+1);
+    if (hash_pos!=std::string::npos)
+    {
+      std::string field_str=name.substr(dot_pos+1, hash_pos-dot_pos-1);
+      if (!field_str.empty())
+        return field_str;
+    }
+  }
 
-  std::string loc_str=name.substr(dot_pos+1, hash_pos-dot_pos-1);
-  if (loc_str.empty())
-    return not_found;
-
-  return loc_str;
+  return not_found;
 }
