@@ -28,10 +28,10 @@ class summaryt
   // TODO -------------------------------------------
   typedef struct
   {
+    irep_idt pretty_name;    // variable pretty name
     irep_idt loophead_loc;   // loop-head location
     irep_idt dyn_mem_field;  // dynamic object memory field name
     irep_idt dyn_alloc_loc;  // dynamic object allocation location
-    irep_idt pretty_name;    // variable pretty name
   } imprecise_vart;
 
   typedef std::vector<imprecise_vart> imprecise_varst;
