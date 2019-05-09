@@ -69,6 +69,11 @@ public:
 
   bool edit_row(const rowt &row, valuet &inv, bool improved);
 
+  // TODO --------------------------------------------------------
+  virtual std::vector<std::string> identify_invariant_imprecision(
+    const valuet &value) override;
+  // -------------------------------------------------------------
+
 protected:
   // Special path containing conjunction negations of all loop-select guards
   // This must be stored explicitly since the solver is not able to explore this

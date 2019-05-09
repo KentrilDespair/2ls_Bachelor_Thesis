@@ -206,11 +206,11 @@ void heap_tpolyhedra_domaint::set_smt_values(
 
 Function: heap_tpolyhedra_domaint::identify_invariant_imprecision
 
-  Inputs: TODO
+  Inputs: Computed invariant values
 
- Outputs: TODO
+ Outputs: Vector of imprecise SSA variable names
 
- Purpose: TODO
+ Purpose: Identify imprecise template variables inside invariant
 
 \*******************************************************************/
 std::vector<std::string> heap_tpolyhedra_domaint::identify_invariant_imprecision(
@@ -221,15 +221,15 @@ std::vector<std::string> heap_tpolyhedra_domaint::identify_invariant_imprecision
 
   // invariant identif imprecision for both 'sub-domains'
   // heap domain variables
-  std::vector<std::string> ssa_vars=heap_domain.identify_invariant_imprecision(
-    v.heap_value);
+  std::vector<std::string> ssa_vars=
+    heap_domain.identify_invariant_imprecision(v.heap_value);
 
   // tpolyhedra domain variables
   std::vector<std::string> tpoly_vars=
     polyhedra_domain.identify_invariant_imprecision(v.tpolyhedra_value);
 
-  // concatenate vectors
-  ssa_vars.reserve(ssa_vars.size() + tpoly_vars.size());
+  // concatenate found vector of variables of both domains
+  ssa_vars.reserve(ssa_vars.size()+tpoly_vars.size());
   ssa_vars.insert(
     ssa_vars.end(),
     std::make_move_iterator(tpoly_vars.begin()),
