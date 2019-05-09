@@ -1308,7 +1308,7 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
       secnd_row_val=get_row_value(row, templ_val);
 
       // pair is max and min -> unbounded value
-      if (first_row_val==get_max_row_value(row-1) &&
+      if (is_row_value_max(row-1, first_row_val) &&
           is_row_value_min(row, secnd_row_val))
       {
         ssa_vars.push_back(expr_name);
@@ -1316,7 +1316,39 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
     }
     first_row=!first_row;
   }
+
   return ssa_vars;
+}
+
+/*******************************************************************\
+
+ Function: tpolyhedra_domaint::is_row_value_max()
+
+   Inputs: Template row, row value to be evaluated
+
+  Outputs: True if is maximum otherwise false
+
+  Purpose: Evaluate whether a row value at row is a maximum value
+
+\*******************************************************************/
+
+bool tpolyhedra_domaint::is_row_value_max(
+  const rowt &row,
+  const row_valuet &row_val)
+{
+  const template_rowt &templ_row=templ[row];
+
+  if(templ_row.expr.type().id()==ID_floatbv)
+  {
+    ieee_floatt row_valf(row_val);
+    ieee_floatt max(to_floatbv_type(templ_row.expr.type()));
+    max.make_fltmax();
+
+    // greater than max (including infinity)
+    return row_valf>=max;
+  }
+  else
+    return row_val==get_max_row_value(row);
 }
 
 /*******************************************************************\
@@ -1341,18 +1373,16 @@ bool tpolyhedra_domaint::is_row_value_min(
   if(templ_row.expr.type().id()==ID_signedbv)
   {
     mp_integer int_row_val;
-
     // is true on conversion error
     if (to_integer(row_val, int_row_val))
       return false;
 
     // the first row of the pair was unsigned -> minimum is 0
     if (templ[row-1].expr.type().id()==ID_unsignedbv)
-      return int_row_val == 0;
+      return int_row_val==0;
 
-    return (-(int_row_val << 1) == to_signedbv_type(
-      templ_row.expr.type()).smallest()
-    );
+    return (-(int_row_val << 1)==to_signedbv_type(
+              templ_row.expr.type()).smallest());
   }
   if(templ_row.expr.type().id()==ID_unsignedbv)
   {
@@ -1360,9 +1390,17 @@ bool tpolyhedra_domaint::is_row_value_min(
   }
   if(templ_row.expr.type().id()==ID_floatbv)
   {
-    ieee_floatt min(to_floatbv_type(templ_row.expr.type()));
-    min.make_fltmin();
-    return row_val==min.to_expr();
+    ieee_floatt row_valf(row_val);
+    ieee_floatt max(to_floatbv_type(templ_row.expr.type()));
+    max.make_fltmax();
+
+    // TODO debugging
+    //std::cerr << "ROW VAL MIN: " << row_valf << std::endl;
+    //std::cerr << "FLOAT MIN: " << max << std::endl;
+
+    // less than -max (including infinity)
+    // -row_valf <= -max
+    return row_valf>=max;
   }
   assert(false); // type not supported
 }
