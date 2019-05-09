@@ -436,8 +436,8 @@ Function: ssa_analyzert::get_alloc_site_loc(const std::string &name)
 \*******************************************************************/
 int ssa_analyzert::get_alloc_site_loc(const std::string &name)
 {
-  size_t field_pos=name.find_last_of('$');
-  if (field_pos==std::string::npos)
+  size_t field_pos=DYN_PRFX_LEN-1;
+  if (name[field_pos]!='$')
     return -1;
 
   std::string loc_str=name.substr(field_pos+1);
@@ -457,13 +457,9 @@ Function: ssa_analyzert::get_dynamic_field(const std::string &name)
 \*******************************************************************/
 std::string ssa_analyzert::get_dynamic_field(const std::string &name)
 {
-  // only dynamic objects: expecting dollar sign at pos 14
-  // TODO remove after, NO FAULT
-  assert(name[DYN_PRFX_LEN-1]=='$');
-
   std::string not_found("<NO MEMBER>");
 
-  // "dynamic_object$N.____#"
+  // "dynamic_object$N.___#" <- get the '___'
   size_t dot_pos=name.find('.', DYN_PRFX_LEN);
   if (dot_pos!=std::string::npos)
   {
