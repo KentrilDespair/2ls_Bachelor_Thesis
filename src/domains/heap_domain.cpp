@@ -2015,11 +2015,11 @@ Function: heap_domaint::identify_invariant_imprecision
 std::vector<std::string> heap_domaint::identify_invariant_imprecision(
   const domaint::valuet &value)
 {
-  // get corresponding template row values
+  // Get the corresponding template row values
   const heap_valuet &val=static_cast<const heap_valuet &>(value);
   assert(val.size()==templ.size());
 
-  // vector for saving ssa variable names
+  // Vector of ssa variable names
   std::vector<std::string> ssa_vars;
  
   for (rowt row=0; row<templ.size(); row++)
@@ -2031,14 +2031,9 @@ std::vector<std::string> heap_domaint::identify_invariant_imprecision(
     // row value is nondeterministic
     if (row_val.is_true()) 
     {
-      // Only template expressions that are of symbol type
-      if (row_expr.id()!=ID_symbol)
-        continue;
-
-      // the template row expression variable name
-      std::string expr_name=from_expr(domaint::ns, "", row_expr);
-
-      ssa_vars.push_back(expr_name);
+      // Save only the names of template expressions that are of symbol type
+      if (row_expr.id()==ID_symbol)
+        ssa_vars.push_back(from_expr(domaint::ns, "", row_expr));
     }
   }
 

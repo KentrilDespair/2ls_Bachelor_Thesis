@@ -23,6 +23,8 @@ Author: Peter Schrammel
 
 #define ENABLE_HEURISTICS
 
+#include <iostream>
+
 /*******************************************************************\
 
 Function: tpolyhedra_domaint::initialize
@@ -1278,16 +1280,13 @@ void tpolyhedra_domaint::eliminate_sympaths(
 std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
   const domaint::valuet &value)
 {
-  // get template row values
   const templ_valuet &templ_val=static_cast<const templ_valuet &>(value);
   assert(templ_val.size()==templ.size());
 
-  // indicates the first template row of a template row pair
+  // the first template row of a template row pair
   bool first_row=true;
   
-  // the first and the second template row values of a template row pair
   row_valuet first_row_val, secnd_row_val;
-
   std::string expr_name;
 
   // vector for saving ssa variable names
@@ -1307,7 +1306,7 @@ std::vector<std::string> tpolyhedra_domaint::identify_invariant_imprecision(
     {
       secnd_row_val=get_row_value(row, templ_val);
 
-      // pair is max and min -> unbounded value
+      // imprecise - 1st row is max, 2nd row is min in its type
       if (is_row_value_max(row-1, first_row_val) &&
           is_row_value_min(row, secnd_row_val))
       {
@@ -1338,16 +1337,18 @@ bool tpolyhedra_domaint::is_row_value_max(
 {
   const template_rowt &templ_row=templ[row];
 
+  // float types 
   if(templ_row.expr.type().id()==ID_floatbv)
   {
     ieee_floatt row_valf(row_val);
-    ieee_floatt max(to_floatbv_type(templ_row.expr.type()));
-    max.make_fltmax();
+    ieee_floatt max_valf(to_floatbv_type(templ_row.expr.type()));
+    max_valf.make_fltmax();
 
-    // greater than max (including infinity)
-    return row_valf>=max;
+    // is greater than max (including infinity)
+    return row_valf>=max_valf;
   }
   else
+    // is maximum value of the row
     return row_val==get_max_row_value(row);
 }
 
@@ -1370,10 +1371,12 @@ bool tpolyhedra_domaint::is_row_value_min(
   assert(row>0);
   const template_rowt &templ_row=templ[row];
 
+  // signed numeric type
   if(templ_row.expr.type().id()==ID_signedbv)
   {
     mp_integer int_row_val;
-    // is true on conversion error
+
+    // try converting the row value to mp_integer
     if (to_integer(row_val, int_row_val))
       return false;
 
@@ -1381,26 +1384,24 @@ bool tpolyhedra_domaint::is_row_value_min(
     if (templ[row-1].expr.type().id()==ID_unsignedbv)
       return int_row_val==0;
 
-    return (-(int_row_val << 1)==to_signedbv_type(
-              templ_row.expr.type()).smallest());
+    return ( -(int_row_val << 1)==to_signedbv_type(
+              templ_row.expr.type()).smallest()
+    );
   }
+  // unsigned numeric type
   if(templ_row.expr.type().id()==ID_unsignedbv)
   {
     return row_val==to_unsignedbv_type(templ_row.expr.type()).smallest_expr();
   }
+  // float type
   if(templ_row.expr.type().id()==ID_floatbv)
   {
     ieee_floatt row_valf(row_val);
-    ieee_floatt max(to_floatbv_type(templ_row.expr.type()));
-    max.make_fltmax();
+    ieee_floatt max_valf(to_floatbv_type(templ_row.expr.type()));
+    max_valf.make_fltmax();
 
-    // TODO debugging
-    //std::cerr << "ROW VAL MIN: " << row_valf << std::endl;
-    //std::cerr << "FLOAT MIN: " << max << std::endl;
-
-    // less than -max (including infinity)
-    // -row_valf <= -max
-    return row_valf>=max;
+    // -row_valf is greater than max (including infinity)
+    return row_valf>=max_valf;
   }
   assert(false); // type not supported
 }
