@@ -444,11 +444,11 @@ Function: ssa_analyzert::get_alloc_site_node_loc(const std::string &name)
 \*******************************************************************/
 int ssa_analyzert::get_alloc_site_node_loc(const std::string &name)
 {
-  size_t field_pos=DYN_PRFX_LEN-1;
-  if (name[field_pos]!='$')
+  size_t pos=DYN_PRFX_LEN-1;
+  if (name[pos]!='$')
     return -1;
 
-  std::string loc_str=name.substr(field_pos+1);
+  std::string loc_str=name.substr(pos+1);
   return std::stoi(loc_str);
 }
 
